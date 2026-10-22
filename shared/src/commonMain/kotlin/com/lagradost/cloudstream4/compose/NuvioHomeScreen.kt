@@ -263,7 +263,7 @@ private fun NuvioHeroCard(
             .clickable { onClick() },
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            hero.image()
+            hero.image(this)
         }
         Box(
             Modifier
