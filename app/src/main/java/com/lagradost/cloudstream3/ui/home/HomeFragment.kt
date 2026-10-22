@@ -50,6 +50,7 @@ import com.lagradost.cloudstream3.mvvm.observe
 import com.lagradost.cloudstream3.mvvm.observeNullable
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.Color
 import com.lagradost.cloudstream4.compose.NuvioHomeScreen
 import com.lagradost.cloudstream4.compose.NuvioTheme
 import com.lagradost.cloudstream4.compose.HeroItem
@@ -1125,13 +1126,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                             HomePageItem(
                                                 title = item.name,
                                                 subtitle = item.apiName?.takeIf { it != homeViewModel.apiName.value },
-                                                rating = item.score?.let { it.toString() } ?: item.rating?.let { it.toString() },
+                                                rating = item.score?.toString(),
                                                 image = {
-                                                    // Use async image loading - placeholder for now
                                                     androidx.compose.foundation.layout.Box(
                                                         modifier = androidx.compose.ui.Modifier
                                                             .fillMaxSize()
-                                                            .background(com.lagradost.cloudstream4.compose.NuvioColors.Card)
+                                                            .background(Color(0xFF202127))
                                                     )
                                                 },
                                                 position = index,
