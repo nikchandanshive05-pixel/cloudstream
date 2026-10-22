@@ -18,7 +18,7 @@ fun <T> NuvioContentRow(
     title: String,
     subtitle: String? = null,
     itemContent: @Composable (T) -> Unit,
-    onExpandClick: (() -> Unit)? = null,
+    onExpandClick: @Composable (() -> Unit)? = null,
 ) {
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         NuvioSectionHeader(title = title, subtitle = subtitle, action = onExpandClick)

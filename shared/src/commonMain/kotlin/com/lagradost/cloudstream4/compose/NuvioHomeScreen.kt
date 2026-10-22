@@ -18,10 +18,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.clickable\nimport androidx.compose.foundation.layout.aspectRatio\nimport androidx.compose.material.icons.Icons\nimport androidx.compose.material.icons.filled.FilterList\nimport androidx.compose.material.icons.filled.PlayArrow\nimport androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
