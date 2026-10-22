@@ -93,4 +93,7 @@ Extracted directly from NuvioMobile (`composeApp/src/commonMain/kotlin/com/nuvio
 ---
 
 ## 6. Blocked Section
-*(No blocked items currently)*
+### Current CI fixes (2026-10-22)
+- Removed the conflicting `androidx.compose.ui.draw.background` import from `NuvioHomeScreen.kt`; retained `androidx.compose.foundation.background`.
+- Fixed the in-progress Home Compose integration: removed invalid/duplicate imports, imported `Modifier.fillMaxSize`, safely accessed the successful page resource for expand actions, removed unsupported manual `ComposeView.recompose()` calls, and made the theme-name lookup non-null.
+- The latest available CI log reported these Home integration compilation errors. Local Gradle compilation could not start because Java/JAVA_HOME is not configured. Push these fixes and let GitHub Actions compile them.

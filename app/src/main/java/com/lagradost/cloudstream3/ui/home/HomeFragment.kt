@@ -49,18 +49,12 @@ import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.mvvm.observe
 import com.lagradost.cloudstream3.mvvm.observeNullable
 import androidx.compose.ui.platform.ComposeView
-import androidx.lifecycle.Lifecycle
+import androidx.compose.foundation.layout.fillMaxSize
 import com.lagradost.cloudstream4.compose.NuvioHomeScreen
 import com.lagradost.cloudstream4.compose.NuvioTheme
 import com.lagradost.cloudstream4.compose.HeroItem
 import com.lagradost.cloudstream4.compose.HomePageItem
 import com.lagradost.cloudstream4.compose.HomePageSection
-import com.lagradost.cloudstream4.theme.CloudStreamThemeMode
-import com.lagradost.cloudstream4.theme.CloudStreamTheme
-import com.lagradost.cloudstream4.theme.perfToMode
-import com.lagradost.cloudstream4.theme.CloudStreamThemeMode.Companion.getMode
-import com.lagradost.cloudstream3.DataStoreHelper
-import com.lagradost.cloudstream3.CommonActivity.appliedTheme
 import android.content.res.Configuration
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.ui.APIRepository.Companion.noneApi
@@ -1104,7 +1098,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                 },
                                 onExpandClick = { section ->
                                     // Handle expand click
-                                    val expandable = homeViewModel.page.value?.let { it.value[section.title] }
+                                    val expandable = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
+                                        ?.value?.get(section.title)
                                     expandable?.let { homeViewModel.popup(it, null) }
                                 },
                                 isLoading = homeViewModel.page.value is com.lagradost.cloudstream3.mvvm.Resource.Loading,
@@ -1116,16 +1111,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                         }
                     }
 
-                    // Observe LiveData and recompose
-                    observe(homeViewModel.apiName) { apiName ->
-                        composeView.recompose()
-                    }
-                    observe(homeViewModel.page) { _ ->
-                        composeView.recompose()
-                    }
-                    observe(homeViewModel.preview) { _ ->
-                        composeView.recompose()
-                    }
                 }
 
                 private fun convertToPageItems(resource: com.lagradost.cloudstream3.mvvm.Resource<kotlin.collections.Map<kotlin.String, com.lagradost.cloudstream3.ui.home.HomeViewModel.ExpandableHomepageList>>?): List<HomePageSection> {
