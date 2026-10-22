@@ -33,8 +33,8 @@ fun NuvioSectionHeader(
         action?.let {
             IconButton(onClick = { /* handled by parent */ }) {
                 Icon(
-                    Icons.Default.ChevronRight,
-                    contentDescription = \"Expand\",
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = "Expand",
                     tint = NuvioColors.TextSecondary,
                 )
             }
