@@ -122,4 +122,17 @@
     <color name="colorTestFail">#ea596e</color>
     <color name="colorTestWarning">#FF9800</color>
     <color name="playIconBackground">#B3000000</color>
+
+    <!-- Nuvio Palette -->
+    <color name="nuvio_bg">#0D0D0D</color>
+    <color name="nuvio_surface">#1A1A1A</color>
+    <color name="nuvio_card">#242424</color>
+    <color name="nuvio_card_alt">#1F1F1F</color>
+    <color name="nuvio_gold">#E8A91C</color>
+    <color name="nuvio_gold_dark">#9A6200</color>
+    <color name="nuvio_gold_highlight">#FFD45C</color>
+    <color name="nuvio_blue">#3185F5</color>
+    <color name="nuvio_text_primary">#FFFFFF</color>
+    <color name="nuvio_text_secondary">#AAB2BE</color>
+
 </resources>

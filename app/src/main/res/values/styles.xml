@@ -1130,4 +1130,27 @@
         <item name="android:layout_height">@dimen/download_header_progress_size</item>
         <item name="android:background">@color/playIconBackground</item>
     </style>
+
+    <style name="NuvioMode">
+        <item name="primaryGrayBackground">@color/nuvio_card</item>
+        <item name="primaryBlackBackground">@color/nuvio_bg</item>
+        <item name="iconGrayBackground">@color/nuvio_surface</item>
+        <item name="boxItemBackground">@color/nuvio_card_alt</item>
+        <item name="textColor">@color/nuvio_text_primary</item>
+        <item name="grayTextColor">@color/nuvio_text_secondary</item>
+        <item name="iconColor">@color/nuvio_gold</item>
+        <item name="white">@color/nuvio_text_primary</item>
+        <item name="black">@color/nuvio_bg</item>
+        <item name="colorOnPrimary">@color/nuvio_bg</item>
+    </style>
+
+    <style name="OverlayPrimaryColorNuvioGold">
+        <item name="colorPrimary">@color/nuvio_gold</item>
+        <item name="android:colorPrimary">@color/nuvio_gold</item>
+        <item name="colorPrimaryDark">@color/nuvio_gold_dark</item>
+        <item name="colorAccent">@color/nuvio_gold_highlight</item>
+        <item name="colorOnPrimary">@color/nuvio_bg</item>
+        <item name="android:colorAccent">@color/nuvio_gold</item>
+    </style>
+
 </resources>
