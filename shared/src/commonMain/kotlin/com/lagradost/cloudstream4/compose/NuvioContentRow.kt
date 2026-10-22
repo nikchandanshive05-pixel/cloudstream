@@ -18,9 +18,10 @@ fun <T> NuvioContentRow(
     title: String,
     subtitle: String? = null,
     itemContent: @Composable (T) -> Unit,
+    onExpandClick: (() -> Unit)? = null,
 ) {
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        NuvioSectionHeader(title = title, subtitle = subtitle)
+        NuvioSectionHeader(title = title, subtitle = subtitle, action = onExpandClick)
         LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (key == null) items(items) { itemContent(it) }
             else items(items, key = key) { itemContent(it) }
