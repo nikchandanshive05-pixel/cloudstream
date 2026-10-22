@@ -50,6 +50,7 @@ import com.lagradost.cloudstream3.mvvm.observe
 import com.lagradost.cloudstream3.mvvm.observeNullable
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import com.lagradost.cloudstream4.compose.NuvioHomeScreen
 import com.lagradost.cloudstream4.compose.NuvioTheme
