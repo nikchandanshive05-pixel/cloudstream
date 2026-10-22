@@ -313,6 +313,7 @@
         <item>Dracula</item>
         <item>Lavender Dreams</item>
         <item>Silent Blue</item>
+        <item>Nuvio Cinema</item>
     </string-array>
     <string-array name="themes_names_values">
         <item>AmoledLight</item>
@@ -324,6 +325,7 @@
         <item>Dracula</item>
         <item>Lavender</item>
         <item>SilentBlue</item>
+        <item>Nuvio</item>
     </string-array>
 
     <string-array name="extension_statuses">

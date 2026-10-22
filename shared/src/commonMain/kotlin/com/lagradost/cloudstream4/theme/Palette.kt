@@ -81,4 +81,13 @@ internal object CloudStreamPalette {
     val SilentBlueText = Color(0xFFE0E1F3)
     val SilentBlueGrayText = Color(0xFF7B83B0)
     val SilentBlueIcon = Color(0xFF7B83B0)
+    // Nuvio Dark (Cinematic #0D0D0D)
+    val NuvioBackground = Color(0xFF0D0D0D)
+    val NuvioSurface = Color(0xFF1A1A1A)
+    val NuvioCard = Color(0xFF242424)
+    val NuvioBoxItem = Color(0xFF1F1F1F)
+    val NuvioTextPrimary = Color(0xFFFFFFFF)
+    val NuvioTextSecondary = Color(0xFFAAB2BE)
+    val NuvioGold = Color(0xFFE8A91C)
+    val NuvioBlue = Color(0xFF3185F5)
 }

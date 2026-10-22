@@ -160,3 +160,15 @@ internal fun silentBlueScheme() = CloudStreamColorScheme(
     ongoing = CloudStreamPalette.Ongoing,
     isLight = false,
 )
+internal fun nuvioScheme() = CloudStreamColorScheme(
+    background = CloudStreamPalette.NuvioBackground,
+    surfaceVariant = CloudStreamPalette.NuvioSurface,
+    surface = CloudStreamPalette.NuvioCard,
+    surfaceContainer = CloudStreamPalette.NuvioBoxItem,
+    onBackground = CloudStreamPalette.NuvioTextPrimary,
+    onSurfaceVariant = CloudStreamPalette.NuvioTextSecondary,
+    icon = CloudStreamPalette.NuvioTextSecondary,
+    primary = CloudStreamPalette.NuvioGold,
+    ongoing = CloudStreamPalette.Ongoing,
+    isLight = false,
+)

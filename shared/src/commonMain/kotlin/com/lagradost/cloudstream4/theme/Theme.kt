@@ -38,6 +38,9 @@ enum class CloudStreamThemeMode {
     /** "System" resolved on each platform via [isSystemInDarkTheme] */
     FollowSystem,
 
+    /** Nuvio Cinema theme */
+    Nuvio,
+
     /**
      * Uses platform dynamic color system, Material You on Android 12+,
      * falls back to [Dark] on unsupported platforms.
@@ -61,6 +64,7 @@ fun modeToTheme(mode : CloudStreamThemeMode, primaryColor: CloudStreamPrimaryCol
             CloudStreamThemeMode.Lavender -> lavenderScheme()
             CloudStreamThemeMode.SilentBlue -> silentBlueScheme()
             CloudStreamThemeMode.FollowSystem -> if (systemDark) darkScheme() else lightScheme()
+            CloudStreamThemeMode.Nuvio -> nuvioScheme()
             CloudStreamThemeMode.Dynamic -> dynamicTheme
         }
         when {
