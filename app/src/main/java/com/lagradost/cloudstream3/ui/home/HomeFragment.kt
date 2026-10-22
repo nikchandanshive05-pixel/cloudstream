@@ -48,6 +48,20 @@ import com.lagradost.cloudstream3.mvvm.Resource
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.mvvm.observe
 import com.lagradost.cloudstream3.mvvm.observeNullable
+import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.Lifecycle
+import com.lagradost.cloudstream4.compose.NuvioHomeScreen
+import com.lagradost.cloudstream4.compose.NuvioTheme
+import com.lagradost.cloudstream4.compose.HeroItem
+import com.lagradost.cloudstream4.compose.HomePageItem
+import com.lagradost.cloudstream4.compose.HomePageSection
+import com.lagradost.cloudstream4.theme.CloudStreamThemeMode
+import com.lagradost.cloudstream4.theme.CloudStreamTheme
+import com.lagradost.cloudstream4.theme.perfToMode
+import com.lagradost.cloudstream4.theme.CloudStreamThemeMode.Companion.getMode
+import com.lagradost.cloudstream3.DataStoreHelper
+import com.lagradost.cloudstream3.CommonActivity.appliedTheme
+import android.content.res.Configuration
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.ui.APIRepository.Companion.noneApi
 import com.lagradost.cloudstream3.ui.APIRepository.Companion.randomApi
@@ -673,12 +687,24 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
     }
 
     @SuppressLint("SetTextI18n")
-    override fun onBindingCreated(binding: FragmentHomeBinding) {
-        context?.let { HomeChildItemAdapter.updatePosterSize(it) }
-        (activity as? ComponentActivity)?.attachBackPressedCallback("HomeFragment_BackPress") {
-            handleTvBackPress(this)
-        }
-        binding.apply {
+        override fun onBindingCreated(binding: FragmentHomeBinding) {
+            context?.let { HomeChildItemAdapter.updatePosterSize(it) }
+            (activity as? ComponentActivity)?.attachBackPressedCallback("HomeFragment_BackPress") {
+                handleTvBackPress(this)
+            }
+
+            // Check if Nuvio theme is active
+            val isNuvioTheme = context?.let {
+                val themeName = DataStoreHelper.getThemeName(it)
+                themeName == "Nuvio"
+            } ?: false
+
+            if (isNuvioTheme) {
+                setupNuvioHomeScreen(binding)
+                return
+            }
+
+            binding.apply {
             //homeChangeApiLoading.setOnClickListener(apiChangeClickListener)
             //homeChangeApiLoading.setOnClickListener(apiChangeClickListener)
             homeApiFab.setOnClickListener(apiChangeClickListener)
@@ -1039,6 +1065,115 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
             }
             // Case 3: Any other location -> Use default back behavior
             else -> helper.runDefault()
-        }
-    }
-}
+                    }
+                }
+
+                private fun setupNuvioHomeScreen(binding: FragmentHomeBinding) {
+                    // Hide legacy views
+                    binding.homeMasterRecycler.visibility = View.GONE
+                    binding.homeLoading.visibility = View.GONE
+                    binding.homeLoadingError.visibility = View.GONE
+                    binding.homeApiFab.visibility = View.GONE
+                    binding.homeRandom.visibility = View.GONE
+                    binding.homeRandomButtonTv.visibility = View.GONE
+                    binding.homeApiHolder.visibility = View.GONE
+                    binding.homeClock.visibility = View.GONE
+
+                    // Show and setup ComposeView
+                    val composeView = binding.homeComposeView
+                    composeView.visibility = View.VISIBLE
+                    composeView.setViewCompositionStrategy(
+                        androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+                    )
+
+                    composeView.setContent {
+                        NuvioTheme {
+                            NuvioHomeScreen(
+                                modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+                                apiName = homeViewModel.apiName.value,
+                                pageItems = convertToPageItems(homeViewModel.page.value),
+                                heroItems = convertToHeroItems(homeViewModel.preview.value),
+                                onApiClick = { context?.selectHomepage(homeViewModel.apiName.value) { api ->
+                                    homeViewModel.loadAndCancel(api, forceReload = true, fromUI = true)
+                                } },
+                                onHeroClick = { hero ->
+                                    // Handle hero click - navigate to detail
+                                },
+                                onItemClick = { section, position ->
+                                    // Handle item click
+                                },
+                                onExpandClick = { section ->
+                                    // Handle expand click
+                                    val expandable = homeViewModel.page.value?.let { it.value[section.title] }
+                                    expandable?.let { homeViewModel.popup(it, null) }
+                                },
+                                isLoading = homeViewModel.page.value is com.lagradost.cloudstream3.mvvm.Resource.Loading,
+                                error = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Failure)?.errorString,
+                                onRetry = { homeViewModel.loadAndCancel(homeViewModel.apiName.value ?: noneApi.name, forceReload = true) },
+                                showRandom = false, // TODO: Add random button preference
+                                onRandomClick = { /* TODO */ },
+                            )
+                        }
+                    }
+
+                    // Observe LiveData and recompose
+                    observe(homeViewModel.apiName) { apiName ->
+                        composeView.recompose()
+                    }
+                    observe(homeViewModel.page) { _ ->
+                        composeView.recompose()
+                    }
+                    observe(homeViewModel.preview) { _ ->
+                        composeView.recompose()
+                    }
+                }
+
+                private fun convertToPageItems(resource: com.lagradost.cloudstream3.mvvm.Resource<kotlin.collections.Map<kotlin.String, com.lagradost.cloudstream3.ui.home.HomeViewModel.ExpandableHomepageList>>?): List<HomePageSection> {
+                    return resource?.let {
+                        when (it) {
+                            is com.lagradost.cloudstream3.mvvm.Resource.Success -> {
+                                it.value.values.map { expandable ->
+                                    HomePageSection(
+                                        title = expandable.list.name,
+                                        subtitle = null,
+                                        items = expandable.list.list.mapIndexed { index, item ->
+                                            HomePageItem(
+                                                title = item.name,
+                                                subtitle = item.apiName?.takeIf { it != homeViewModel.apiName.value },
+                                                rating = item.score?.let { it.toString() } ?: item.rating?.let { it.toString() },
+                                                image = {
+                                                    // Use async image loading - placeholder for now
+                                                    androidx.compose.foundation.layout.Box(
+                                                        modifier = androidx.compose.ui.Modifier
+                                                            .fillMaxSize()
+                                                            .background(com.lagradost.cloudstream4.compose.NuvioColors.Card)
+                                                    )
+                                                },
+                                                position = index,
+                                            )
+                                        }.toList(),
+                                    )
+                                }.toList()
+                            }
+                            else -> emptyList()
+                        }
+                    } ?: emptyList()
+                }
+
+                private fun convertToHeroItems(resource: com.lagradost.cloudstream3.mvvm.Resource<kotlin.Pair<kotlin.Boolean, kotlin.collections.List<com.lagradost.cloudstream3.LoadResponse>>>?): List<HeroItem> {
+                    return resource?.let {
+                        when (it) {
+                            is com.lagradost.cloudstream3.mvvm.Resource.Success -> {
+                                it.value.second.map { loadResponse ->
+                                    HeroItem(
+                                        title = loadResponse.name,
+                                        subtitle = loadResponse.apiName,
+                                        image = { /* placeholder */ },
+                                    )
+                                }
+                            }
+                            else -> emptyList()
+                        }
+                    } ?: emptyList()
+                }
+            }

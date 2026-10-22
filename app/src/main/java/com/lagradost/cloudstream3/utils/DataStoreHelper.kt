@@ -836,6 +836,11 @@ object DataStoreHelper {
     }
 
     var pinnedProviders: Array<String>
-        get() = getKey<Array<String>>(USER_PINNED_PROVIDERS) ?: emptyArray<String>()
-        set(value) = setKey(USER_PINNED_PROVIDERS, value)
+            get() = getKey<Array<String>>(USER_PINNED_PROVIDERS) ?: emptyArray<String>()
+            set(value) = setKey(USER_PINNED_PROVIDERS, value)
+
+        fun getThemeName(context: Context): String {
+            return androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getString(context.getString(R.string.app_theme_key), "AmoledLight")
+        }
 }

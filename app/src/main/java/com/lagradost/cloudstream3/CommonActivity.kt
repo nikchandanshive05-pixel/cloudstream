@@ -356,8 +356,9 @@ object CommonActivity {
                 "Dracula" -> R.style.DraculaMode
                 "Lavender" -> R.style.LavenderMode
                 "SilentBlue" -> R.style.SilentBlueMode
+                            "Nuvio" -> R.style.NuvioMode
 
-                else -> R.style.AppTheme
+                            else -> R.style.AppTheme
             }
 
         val currentOverlayTheme =
@@ -386,6 +387,7 @@ object CommonActivity {
 
                 "Monet2" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                     R.style.OverlayPrimaryColorMonetTwo else R.style.OverlayPrimaryColorNormal
+                "NuvioGold" -> R.style.OverlayPrimaryColorNuvioGold
 
                 else -> R.style.OverlayPrimaryColorNormal
             }
