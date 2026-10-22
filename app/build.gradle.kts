@@ -154,7 +154,7 @@ android {
         }
         debug {
             isDebuggable = true
-            applicationIdSuffix = ".debug"
+            applicationIdSuffix = ".nuvio"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
