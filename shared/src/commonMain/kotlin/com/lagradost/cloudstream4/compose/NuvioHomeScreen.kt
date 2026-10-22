@@ -1,24 +1,27 @@
 package com.lagradost.cloudstream4.compose
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.align
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.clickable\nimport androidx.compose.foundation.layout.aspectRatio\nimport androidx.compose.material.icons.Icons\nimport androidx.compose.material.icons.filled.FilterList\nimport androidx.compose.material.icons.filled.PlayArrow\nimport androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -83,7 +86,6 @@ private fun NuvioHomeLoading() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // Shimmer-like loading placeholder
         NuvioPosterCard(
             title = "Loading...",
             modifier = Modifier.padding(16.dp).width(125.dp).aspectRatio(2f / 3f),
@@ -130,32 +132,29 @@ private fun NuvioHomeContent(
     showRandom: Boolean,
     onRandomClick: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-    ) {
-        // Provider selector / API name chip
-        item {
-            NuvioProviderChip(
-                label = apiName ?: "Select Source",
-                onClick = onApiClick,
-            )
-        }
-
-        // Hero carousel
-        if (heroItems.isNotEmpty()) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
             item {
-                NuvioHeroCarousel(
-                    items = heroItems,
-                    onClick = onHeroClick,
+                NuvioProviderChip(
+                    label = apiName ?: "Select Source",
+                    onClick = onApiClick,
                 )
             }
-        }
 
-        // Content shelves
-        itemsIndexed(pageItems) { index, section ->
-            item {
+            if (heroItems.isNotEmpty()) {
+                item {
+                    NuvioHeroCarousel(
+                        items = heroItems,
+                        onClick = onHeroClick,
+                    )
+                }
+            }
+
+            itemsIndexed(pageItems) { index, section ->
                 NuvioContentRow(
                     items = section.items,
                     title = section.title,
@@ -179,20 +178,19 @@ private fun NuvioHomeContent(
                 )
             }
         }
-    }
 
-    // Random FAB
-    if (showRandom) {
-        FloatingActionButton(
-            onClick = onRandomClick,
-            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
-            containerColor = NuvioColors.Gold,
-            contentColor = NuvioColors.Background,
-        ) {
-            Icon(
-                Icons.Default.PlayArrow,
-                contentDescription = "Random",
-            )
+        if (showRandom) {
+            FloatingActionButton(
+                onClick = onRandomClick,
+                modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
+                containerColor = NuvioColors.Gold,
+                contentColor = NuvioColors.Background,
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = "Random",
+                )
+            }
         }
     }
 }
@@ -302,7 +300,6 @@ private fun NuvioHeroCard(
     }
 }
 
-// Data models for the home screen
 data class HomePageSection(
     val title: String,
     val subtitle: String? = null,
