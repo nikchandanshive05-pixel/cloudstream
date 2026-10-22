@@ -35,6 +35,8 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.coil.network.ktor3)
             implementation(libs.bundles.compose)
+            implementation("androidx.compose.material:material-icons-core:1.6.0")
+            implementation("androidx.compose.material:material-icons-extended:1.6.0")
             implementation(libs.kotlinx.collections.immutable)
             implementation(project(":library"))
         }
