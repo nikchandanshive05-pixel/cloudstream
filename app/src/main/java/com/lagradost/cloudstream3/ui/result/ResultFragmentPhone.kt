@@ -45,6 +45,8 @@ import com.lagradost.cloudstream3.databinding.FragmentResultBinding
 import com.lagradost.cloudstream3.databinding.FragmentResultSwipeBinding
 import com.lagradost.cloudstream3.databinding.ResultRecommendationsBinding
 import com.lagradost.cloudstream3.databinding.ResultSyncBinding
+import com.lagradost.cloudstream4.compose.NuvioDetailHeader
+import com.lagradost.cloudstream4.compose.NuvioTheme
 import com.lagradost.cloudstream3.databinding.TrailerCustomLayoutBinding
 import com.lagradost.cloudstream3.mvvm.Resource
 import com.lagradost.cloudstream3.mvvm.launchSafe
@@ -437,6 +439,9 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
         resultBinding = binding.fragmentResult
         recommendationBinding = binding.resultRecommendations
         syncBinding = binding.resultSync
+        resultBinding?.resultNuvioDetail?.setViewCompositionStrategy(
+            androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
 
         // Set up trailer player
         val ctx = context ?: return
@@ -934,6 +939,25 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     register(resultCastItems)
                 }
                 (data as? Resource.Success)?.value?.let { d ->
+                    resultNuvioDetail.setContent {
+                        NuvioTheme {
+                            NuvioDetailHeader(
+                                title = d.title,
+                                metadata = listOfNotNull(
+                                    d.apiName.asStringNull(context),
+                                    d.contentRatingText?.asStringNull(context),
+                                    d.typeText.asStringNull(context),
+                                    d.yearText?.asStringNull(context),
+                                    d.ratingText?.asStringNull(context),
+                                    d.onGoingText?.asStringNull(context),
+                                    d.durationText?.asStringNull(context),
+                                ).filter { it.isNotBlank() },
+                                description = d.plotText.asStringNull(context).orEmpty(),
+                                tags = d.tags,
+                            )
+                        }
+                    }
+                    resultLegacyDetailHeader.isGone = true
                     resultVpn.setText(d.vpnText)
                     resultInfo.setText(d.metaText)
                     resultNoEpisodes.setText(d.noEpisodesFoundText)

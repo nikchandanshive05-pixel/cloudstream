@@ -97,3 +97,7 @@ Extracted directly from NuvioMobile (`composeApp/src/commonMain/kotlin/com/nuvio
 - Removed the conflicting `androidx.compose.ui.draw.background` import from `NuvioHomeScreen.kt`; retained `androidx.compose.foundation.background`.
 - Fixed the in-progress Home Compose integration: removed invalid/duplicate imports, imported `Modifier.fillMaxSize`, safely accessed the successful page resource for expand actions, removed unsupported manual `ComposeView.recompose()` calls, and made the theme-name lookup non-null.
 - The latest available CI log reported these Home integration compilation errors. Local Gradle compilation could not start because Java/JAVA_HOME is not configured. Push these fixes and let GitHub Actions compile them.
+
+### Result/Detail UI progress
+- Added a Nuvio-styled Compose detail header hosted in the existing result screen. It presents the title, provider and media metadata, expandable description, and tags while the existing ViewModel and XML-backed action/episode controls remain connected.
+- Phone verification is still needed for trailer presentation, long descriptions, movie and series actions, sync, cast, and recommendations.
