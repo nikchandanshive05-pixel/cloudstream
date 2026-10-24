@@ -25,6 +25,7 @@ enum class CloudStreamPrimaryColor(val color: Color) {
     LAVENDER(Color(0xFF6F55AF)),
     DYNAMIC(Color(0xFF3D50FA)),
     DYNAMIC_TWO(Color(0xFF3D50FA)),
+    NUVIO_GOLD(Color(0xFFE8A91C)),
 }
 
 

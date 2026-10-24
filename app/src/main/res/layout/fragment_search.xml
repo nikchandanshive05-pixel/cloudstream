@@ -171,4 +171,11 @@
         android:visibility="gone"
         tools:listitem="@layout/search_suggestion_item" />
 
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/search_compose_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:visibility="gone" />
 </FrameLayout>

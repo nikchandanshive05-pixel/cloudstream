@@ -1,4 +1,17 @@
+
 package com.lagradost.cloudstream3.ui.search
+
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.foundation.layout.fillMaxSize
+import com.lagradost.cloudstream4.compose.NuvioSearchScreen
+import com.lagradost.cloudstream4.compose.NuvioSearchResultItem
+import com.lagradost.cloudstream4.compose.NuvioSearchHistoryEntry
+import com.lagradost.cloudstream4.compose.NuvioTheme
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 import android.app.Activity
 import android.content.Intent
@@ -237,6 +250,16 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>(
         savedInstanceState: Bundle?
     ) {
         reloadRepos()
+
+        val isNuvioTheme = context?.let {
+            val themeName = DataStoreHelper.getThemeName(it)
+            themeName == "Nuvio"
+        } ?: false
+
+        if (isNuvioTheme) {
+            setupNuvioSearchScreen(binding)
+            return
+        }
         binding.apply {
             val adapter =
                 SearchAdapter(
@@ -701,4 +724,142 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>(
 
         searchViewModel.updateHistory()
     }
+
+    private fun setupNuvioSearchScreen(binding: FragmentSearchBinding) {
+        // Hide legacy XML layout child views
+        binding.root.getChildAt(0)?.visibility = View.GONE
+
+        val composeView = binding.searchComposeView
+        composeView.visibility = View.VISIBLE
+        composeView.setViewCompositionStrategy(
+            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
+
+        val searchQueryState = mutableStateOf(searchViewModel.lastQuery ?: "")
+        val searchResultsState = mutableStateOf<List<NuvioSearchResultItem>>(emptyList())
+        val searchHistoryState = mutableStateOf<List<NuvioSearchHistoryEntry>>(emptyList())
+        val isLoadingState = mutableStateOf(false)
+
+        observe(searchViewModel.searchResponse) { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    isLoadingState.value = false
+                    val list = resource.value.list
+                    searchResultsState.value = list.map { resp ->
+                        NuvioSearchResultItem(
+                            id = resp.url,
+                            name = resp.name,
+                            posterUrl = resp.posterUrl,
+                            type = resp.type?.name,
+                            apiName = resp.apiName,
+                        )
+                    }
+                }
+                is Resource.Loading -> {
+                    isLoadingState.value = true
+                }
+                is Resource.Failure -> {
+                    isLoadingState.value = false
+                }
+            }
+        }
+
+        observe(searchViewModel.currentSearch) { map ->
+            if (searchResultsState.value.isEmpty()) {
+                val allItems = map.values.flatMap { it.list }.distinctBy { it.url }
+                if (allItems.isNotEmpty()) {
+                    searchResultsState.value = allItems.map { resp ->
+                        NuvioSearchResultItem(
+                            id = resp.url,
+                            name = resp.name,
+                            posterUrl = resp.posterUrl,
+                            type = resp.type?.name,
+                            apiName = resp.apiName,
+                        )
+                    }
+                }
+            }
+        }
+
+        observe(searchViewModel.currentHistory) { historyList ->
+            searchHistoryState.value = historyList.map { item ->
+                NuvioSearchHistoryEntry(
+                    key = item.key,
+                    query = item.searchText,
+                )
+            }
+        }
+
+        composeView.setContent {
+            NuvioTheme {
+                NuvioSearchScreen(
+                    query = searchQueryState.value,
+                    onQueryChange = { newQuery ->
+                        searchQueryState.value = newQuery
+                        if (newQuery.isBlank()) {
+                            searchResultsState.value = emptyList()
+                            searchViewModel.clearSearch()
+                            searchViewModel.updateHistory()
+                        }
+                    },
+                    onSearch = { submittedQuery ->
+                        if (submittedQuery.isNotBlank()) {
+                            search(submittedQuery)
+                        }
+                    },
+                    onClearQuery = {
+                        searchQueryState.value = ""
+                        searchResultsState.value = emptyList()
+                        searchViewModel.clearSearch()
+                        searchViewModel.updateHistory()
+                    },
+                    results = searchResultsState.value,
+                    history = searchHistoryState.value,
+                    onHistoryItemClick = { histQuery ->
+                        searchQueryState.value = histQuery
+                        search(histQuery)
+                    },
+                    onHistoryItemRemove = { key ->
+                        removeKey("$currentAccount/$SEARCH_HISTORY_KEY", key)
+                        searchViewModel.updateHistory()
+                    },
+                    onClearHistory = {
+                        removeKeys("$currentAccount/$SEARCH_HISTORY_KEY")
+                        searchViewModel.updateHistory()
+                    },
+                    onResultClick = { resultItem ->
+                        val resp = (searchViewModel.searchResponse.value as? Resource.Success)?.value?.list?.firstOrNull { it.url == resultItem.id }
+                            ?: searchViewModel.currentSearch.value?.values?.flatMap { it.list }?.firstOrNull { it.url == resultItem.id }
+                        resp?.let { activity?.loadSearchResult(it) }
+                    },
+                    onFilterClick = {
+                        showFilterDialog()
+                    },
+                    isLoading = isLoadingState.value,
+                )
+            }
+        }
+    }
+
+    private fun showFilterDialog() {
+        context?.filterProviderByPreferredMedia()?.let { validAPIs ->
+            activity?.let { act ->
+                val builder = AlertDialog.Builder(act, R.style.AlertDialogCustom)
+                val apiNames = validAPIs.map { it.name }.toTypedArray()
+                val checked = validAPIs.map { selectedApis.contains(it.name) }.toBooleanArray()
+
+                builder.setTitle(R.string.change_providers_img_des)
+                builder.setMultiChoiceItems(apiNames, checked) { _, which, isChecked ->
+                    val name = apiNames[which]
+                    if (isChecked) selectedApis.add(name) else selectedApis.remove(name)
+                }
+                builder.setPositiveButton(R.string.action_reload) { _, _ ->
+                    search(searchViewModel.lastQuery)
+                }
+                builder.setNegativeButton(android.R.string.cancel, null)
+                builder.show()
+            }
+        }
+    }
+
 }

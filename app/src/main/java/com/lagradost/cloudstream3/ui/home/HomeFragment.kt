@@ -1093,11 +1093,16 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                     homeViewModel.loadAndCancel(api, forceReload = true, fromUI = true)
                                 } },
                                 onHeroClick = { hero ->
-                                    // Handle hero click - navigate to detail
-                                },
-                                onItemClick = { section, position ->
-                                    // Handle item click
-                                },
+                                      val previewList = (homeViewModel.preview.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)?.value?.second
+                                      previewList?.firstOrNull { it.name == hero.title }?.let { item ->
+                                          activity?.loadSearchResult(item)
+                                      }
+                                  },
+                                  onItemClick = { section, position ->
+                                      val searchItem = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
+                                          ?.value?.get(section.title)?.list?.list?.getOrNull(position)
+                                      searchItem?.let { activity?.loadSearchResult(it) }
+                                  },
                                 onExpandClick = { section ->
                                     // Handle expand click
                                     val expandable = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
@@ -1128,13 +1133,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                                 title = item.name,
                                                 subtitle = item.apiName?.takeIf { it != homeViewModel.apiName.value },
                                                 rating = item.score?.toString(),
-                                                image = {
-                                                    androidx.compose.foundation.layout.Box(
-                                                        modifier = androidx.compose.ui.Modifier
-                                                            .fillMaxSize()
-                                                            .background(Color(0xFF202127))
-                                                    )
-                                                },
+                                                posterUrl = item.posterUrl,
                                                 position = index,
                                             )
                                         }.toList(),
@@ -1153,8 +1152,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                 it.value.second.map { loadResponse ->
                                     HeroItem(
                                         title = loadResponse.name,
-                                        subtitle = loadResponse.apiName,
-                                        image = { /* placeholder */ },
+                                        subtitle = loadResponse.plot ?: loadResponse.apiName,
+                                        posterUrl = loadResponse.backgroundPosterUrl ?: loadResponse.posterUrl,
                                     )
                                 }
                             }

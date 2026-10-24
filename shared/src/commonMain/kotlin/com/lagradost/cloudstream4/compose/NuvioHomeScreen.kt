@@ -1,47 +1,41 @@
 package com.lagradost.cloudstream4.compose
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 
 @Composable
 fun NuvioHomeScreen(
@@ -155,9 +149,10 @@ private fun NuvioHomeContent(
                 }
             }
 
-            itemsIndexed(pageItems) { index, section ->
+            itemsIndexed(pageItems, key = { _, s -> s.title }) { _, section ->
                 NuvioContentRow(
                     items = section.items,
+                    key = { it.title + it.position },
                     title = section.title,
                     subtitle = section.subtitle,
                     itemContent = { item ->
@@ -169,6 +164,7 @@ private fun NuvioHomeContent(
                         ) {
                             NuvioPosterCard(
                                 title = item.title,
+                                posterUrl = item.posterUrl,
                                 subtitle = item.subtitle,
                                 rating = item.rating,
                                 image = item.image,
@@ -199,33 +195,30 @@ private fun NuvioHomeContent(
 @Composable
 private fun NuvioProviderChip(
     label: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .wrapContentSize(),
+        onClick = onClick,
+        modifier = modifier.padding(horizontal = 16.dp),
         shape = RoundedCornerShape(20.dp),
         color = NuvioColors.Surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, NuvioColors.Card),
-        onClick = onClick,
+        border = androidx.compose.foundation.BorderStroke(1.dp, NuvioColors.Gold.copy(alpha = 0.5f)),
     ) {
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Default.FilterList,
-                contentDescription = null,
-                tint = NuvioColors.Gold,
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+            Text(
+                text = "SOURCE",
+                color = NuvioColors.Gold,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
             )
             Text(
                 text = label,
                 color = NuvioColors.TextPrimary,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -234,6 +227,7 @@ private fun NuvioProviderChip(
 @Composable
 private fun NuvioHeroCarousel(
     items: List<HeroItem>,
+    modifier: Modifier = Modifier,
     onClick: (HeroItem) -> Unit,
 ) {
     NuvioContentRow(
@@ -263,7 +257,18 @@ private fun NuvioHeroCard(
             .clickable { onClick() },
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            hero.image(this)
+            if (hero.image != null) {
+                hero.image.invoke(this)
+            } else if (!hero.posterUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = hero.posterUrl,
+                    contentDescription = hero.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Box(Modifier.fillMaxSize().background(NuvioColors.Card))
+            }
         }
         Box(
             Modifier
@@ -276,16 +281,16 @@ private fun NuvioHeroCard(
                     )
                 ),
         )
-        androidx.compose.foundation.layout.Column(
+        Column(
             Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.Bottom,
         ) {
             Text(
                 text = hero.title,
                 color = NuvioColors.TextPrimary,
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -295,7 +300,7 @@ private fun NuvioHeroCard(
                     text = hero.subtitle,
                     color = NuvioColors.TextSecondary,
                     fontSize = 12.sp,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -313,12 +318,14 @@ data class HomePageItem(
     val title: String,
     val subtitle: String? = null,
     val rating: String? = null,
-    val image: @Composable () -> Unit,
+    val posterUrl: String? = null,
+    val image: (@Composable () -> Unit)? = null,
     val position: Int = 0,
 )
 
 data class HeroItem(
     val title: String,
     val subtitle: String? = null,
-    val image: @Composable BoxScope.() -> Unit,
+    val posterUrl: String? = null,
+    val image: (@Composable BoxScope.() -> Unit)? = null,
 )

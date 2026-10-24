@@ -47,6 +47,7 @@ fun perfToColor(perf : String?) = when (perf) {
     "DandelionYellow" -> CloudStreamPrimaryColor.DANDELION_YELLOW
     "CoolBlue" -> CloudStreamPrimaryColor.COOL_BLUE
     "Lavender" -> CloudStreamPrimaryColor.LAVENDER
+    "NuvioGold" -> CloudStreamPrimaryColor.NUVIO_GOLD
     "Monet" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         CloudStreamPrimaryColor.DYNAMIC
     } else {

@@ -277,6 +277,7 @@
         <item>Lavender</item>
         <item>Material You</item>
         <item>Material You (Secondary)</item>
+        <item>Nuvio Gold</item>
     </string-array>
     <string-array name="themes_overlay_names_values">
         <item>Normal</item>
@@ -301,6 +302,7 @@
         <item>Lavender</item>
         <item>Monet</item>
         <item>Monet2</item>
+        <item>NuvioGold</item>
     </string-array>
 
     <string-array name="themes_names">
