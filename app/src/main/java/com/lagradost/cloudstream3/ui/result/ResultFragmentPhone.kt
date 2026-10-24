@@ -1623,9 +1623,8 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
 
         observeNullable(viewModel.resumeWatching) { resume ->
             if (resume != null) {
-                val progress = resume.progress?.toFloat()
-                val max = resume.maxProgress?.toFloat() ?: 0f
-                val pct = if (max > 0f && progress != null) progress / max else null
+                val p = resume.progress
+                val pct = if (p != null && p.maxProgress > 0) p.progress.toFloat() / p.maxProgress.toFloat() else null
                 actionState.value = actionState.value.copy(
                     isResume = true,
                     playButtonText = "Resume",
@@ -1641,7 +1640,7 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     title = rec.name,
                     posterUrl = rec.posterUrl,
                     rating = rec.score?.toString(),
-                    year = rec.year?.toString(),
+                    year = null,
                     type = rec.type?.name,
                 )
             }
@@ -1665,9 +1664,9 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     seasonNumber = ep.season,
                     name = ep.name ?: "Episode ${ep.episode}",
                     description = ep.description,
-                    posterUrl = ep.posterUrl,
-                    duration = ep.runTime?.let { "${it}m" },
-                    rating = ep.rating?.toString(),
+                    posterUrl = ep.poster,
+                    duration = ep.runTime?.let { "${it}m" } ?: if (ep.duration > 0) "${ep.duration / 60000}m" else null,
+                    rating = ep.score?.toString(),
                 )
             }
         }
@@ -1691,9 +1690,9 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                                 seasonNumber = ep.season,
                                 name = ep.name ?: "Episode ${ep.episode}",
                                 description = ep.description,
-                                posterUrl = ep.posterUrl,
-                                duration = ep.runTime?.let { "${it}m" },
-                                rating = ep.rating?.toString(),
+                                posterUrl = ep.poster,
+                                duration = ep.runTime?.let { "${it}m" } ?: if (ep.duration > 0) "${ep.duration / 60000}m" else null,
+                                rating = ep.score?.toString(),
                             )
                         }
                     },
@@ -1703,11 +1702,12 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                         if (movieData != null) {
                             viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, movieData.second))
                         } else {
-                            val resumeEp = viewModel.resumeWatching.value?.episode
+                            val resumeEp = viewModel.resumeWatching.value?.result
                             if (resumeEp != null) {
                                 viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, resumeEp))
                             } else {
-                                val firstEp = (viewModel.episodes.value as? Resource.Success)?.value?.firstOrNull()
+                                val eps = (viewModel.episodes.value as? Resource.Success<*>)?.value as? List<ResultEpisode>
+                                val firstEp = eps?.firstOrNull()
                                 if (firstEp != null) {
                                     viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, firstEp))
                                 }
