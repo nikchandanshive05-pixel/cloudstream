@@ -1,4 +1,8 @@
-# CloudStream
+# CloudStream (Nuvio Edition)
+
+> **Design & UI Attribution:**
+> This edition incorporates design components, tokens, and aesthetic styling inspired by and adapted from [Nuvio Mobile](https://github.com/NuvioMedia/NuvioMobile) by NuvioMedia under the GNU General Public License v3.0 (GPL-3.0). All underlying CloudStream engines, extensions, and protocols remain the intellectual property of their respective authors under GPL-3.0.
+
 
 **⚠️ Warning: By default, this app doesn't provide any video sources; you have to install extensions to add functionality to the app.**
 <p align="left"><a href="https://github.com/recloudstream/cloudstream/releases/download/pre-release/app-prerelease-release.apk"><img src=".github/images/download-cloudstream-pre.png" alt="Download Cloudstream Pre-Release" width=430/></a></p>

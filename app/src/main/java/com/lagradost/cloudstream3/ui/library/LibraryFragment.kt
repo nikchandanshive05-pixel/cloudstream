@@ -1,5 +1,19 @@
 package com.lagradost.cloudstream3.ui.library
 
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.foundation.layout.fillMaxSize
+import com.lagradost.cloudstream4.compose.NuvioLibraryScreen
+import com.lagradost.cloudstream4.compose.NuvioLibraryTab
+import com.lagradost.cloudstream4.compose.NuvioLibraryItem
+import com.lagradost.cloudstream4.compose.NuvioTheme
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.lagradost.cloudstream3.utils.DataStoreHelper
+
+
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -134,6 +148,16 @@ class LibraryFragment : BaseFragment<FragmentLibraryBinding>(
         binding: FragmentLibraryBinding,
         savedInstanceState: Bundle?
     ) {
+        val isNuvioTheme = context?.let {
+            val themeName = DataStoreHelper.getThemeName(it)
+            themeName == "Nuvio"
+        } ?: false
+
+        if (isNuvioTheme) {
+            setupNuvioLibraryScreen(binding)
+            return
+        }
+
         binding.sortFab.setOnClickListener(sortChangeClickListener)
         binding.librarySort.setOnClickListener(sortChangeClickListener)
 
@@ -570,6 +594,132 @@ class LibraryFragment : BaseFragment<FragmentLibraryBinding>(
                 libraryViewModel.sort(method)
             })
     }
+
+    private fun setupNuvioLibraryScreen(binding: FragmentLibraryBinding) {
+        // Hide legacy XML layout child views
+        binding.libraryTabLayout.visibility = View.GONE
+        binding.viewpager.visibility = View.GONE
+        binding.sortFab.visibility = View.GONE
+        binding.libraryRandom.visibility = View.GONE
+        binding.searchBar.visibility = View.GONE
+        binding.emptyListTextview.visibility = View.GONE
+
+        val composeView = binding.libraryComposeView
+        composeView.visibility = View.VISIBLE
+        composeView.setViewCompositionStrategy(
+            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
+
+        val currentTabState = mutableStateOf(libraryViewModel.currentPage.value ?: 0)
+        val tabsState = mutableStateOf<List<NuvioLibraryTab>>(emptyList())
+        val itemsState = mutableStateOf<List<NuvioLibraryItem>>(emptyList())
+        val isLoadingState = mutableStateOf(false)
+        val syncApiNameState = mutableStateOf(libraryViewModel.currentSyncApi?.name ?: "")
+
+        observe(libraryViewModel.currentPage) { page ->
+            currentTabState.value = page
+            val pages = (libraryViewModel.pages.value as? Resource.Success)?.value
+            if (pages != null && page < pages.size) {
+                itemsState.value = pages[page].items.map { card ->
+                    NuvioLibraryItem(
+                        id = card.url,
+                        title = card.name,
+                        posterUrl = card.posterUrl,
+                        subtitle = card.apiName,
+                        rating = card.score?.toString(),
+                    )
+                }
+            }
+        }
+
+        observe(libraryViewModel.pages) { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    isLoadingState.value = false
+                    val pages = resource.value
+                    tabsState.value = pages.mapIndexed { idx, page ->
+                        NuvioLibraryTab(
+                            id = idx,
+                            title = page.name,
+                            count = page.items.size,
+                        )
+                    }
+                    val curIdx = currentTabState.value
+                    if (curIdx < pages.size) {
+                        itemsState.value = pages[curIdx].items.map { card ->
+                            NuvioLibraryItem(
+                                id = card.url,
+                                title = card.name,
+                                posterUrl = card.posterUrl,
+                                subtitle = card.apiName,
+                                rating = card.score?.toString(),
+                            )
+                        }
+                    }
+                }
+                is Resource.Loading -> {
+                    isLoadingState.value = true
+                }
+                is Resource.Failure -> {
+                    isLoadingState.value = false
+                }
+            }
+        }
+
+        composeView.setContent {
+            NuvioTheme {
+                NuvioLibraryScreen(
+                    currentTab = currentTabState.value,
+                    tabs = tabsState.value,
+                    onTabSelected = { newTab ->
+                        currentTabState.value = newTab
+                        libraryViewModel.switchPage(newTab)
+                    },
+                    items = itemsState.value,
+                    onItemClick = { libraryItem ->
+                        val pages = (libraryViewModel.pages.value as? Resource.Success)?.value
+                        val card = pages?.getOrNull(currentTabState.value)?.items?.firstOrNull { it.url == libraryItem.id }
+                        card?.let { activity?.loadSearchResult(it) }
+                    },
+                    onSortClick = {
+                        activity?.let { act ->
+                            val sortingMethods = ListSorting.values()
+                            val names = sortingMethods.map { act.getString(it.stringRes) }
+                            act.showBottomDialog(
+                                names,
+                                sortingMethods.indexOf(libraryViewModel.currentSortingMethod),
+                                act.getString(R.string.sort_by),
+                                false,
+                                {}
+                            ) { selectedIndex ->
+                                libraryViewModel.sort(sortingMethods[selectedIndex])
+                            }
+                        }
+                    },
+                    onSyncClick = {
+                        activity?.let { act ->
+                            val apis = libraryViewModel.availableApiNames
+                            if (apis.isNotEmpty()) {
+                                act.showBottomDialog(
+                                    apis,
+                                    apis.indexOf(libraryViewModel.currentSyncApi?.name),
+                                    act.getString(R.string.sync_and_account_settings),
+                                    false,
+                                    {}
+                                ) { selectedIndex ->
+                                    libraryViewModel.switchList(apis[selectedIndex])
+                                    syncApiNameState.value = apis[selectedIndex]
+                                }
+                            }
+                        }
+                    },
+                    syncApiName = syncApiNameState.value,
+                    isLoading = isLoadingState.value,
+                )
+            }
+        }
+    }
+
 }
 
 class MenuSearchView(context: Context) : SearchView(context)

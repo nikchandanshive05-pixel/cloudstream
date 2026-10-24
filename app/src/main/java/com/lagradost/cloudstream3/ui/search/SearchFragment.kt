@@ -1,6 +1,8 @@
 
 package com.lagradost.cloudstream3.ui.search
 
+import com.lagradost.cloudstream3.utils.AppContextUtils.loadSearchResult
+
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.foundation.layout.fillMaxSize

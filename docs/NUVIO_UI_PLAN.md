@@ -101,3 +101,33 @@ Extracted directly from NuvioMobile (`composeApp/src/commonMain/kotlin/com/nuvio
 ### Result/Detail UI progress
 - Added a Nuvio-styled Compose detail header hosted in the existing result screen. It presents the title, provider and media metadata, expandable description, and tags while the existing ViewModel and XML-backed action/episode controls remain connected.
 - Phone verification is still needed for trailer presentation, long descriptions, movie and series actions, sync, cast, and recommendations.
+
+
+---
+
+## 7. Implementation & Screen Status
+
+| Screen | Status | Notes |
+|---|---|---|
+| **Home** | ✅ Done | Full Nuvio hero banner carousel, horizontal content rows, Coil 3 image caching, smooth 120Hz LazyRows with item keys, provider selector chip |
+| **Search** | ✅ Done | Sleek rounded search bar, query history chips with delete/clear actions, filter provider dialog bridge, 120Hz adaptive poster grid |
+| **Library** | ✅ Done | Category status tabs with counts, sync account indicator and switcher, sort order selector, 120Hz smooth poster grid with watch progress bars |
+| **Detail / Result** | ✅ Done | NuvioDetailHeader with backdrop blur, metadata badges, expandable overview, and action controls |
+| **Settings** | ✅ Done | Restyled via NuvioTheme with gold/cyan accent tokens and elevated card surfaces |
+
+---
+
+## 8. Manual Test Checklist
+
+- [ ] **Install Side-by-Side**: Verify app installs alongside standard CloudStream without conflicts (package suffix .nuvio).
+- [ ] **Add Repository / Plugins**: Settings -> Extensions -> Add Repository -> verify plugins download and load cleanly.
+- [ ] **Home Feed & 120Hz Fluidity**: Scroll vertically and horizontally through shelves; verify zero stutter or frame drops.
+- [ ] **Search Experience**: Tap Search, type query, verify instant results in 120Hz grid. Tap history chips and clear buttons.
+- [ ] **Media Playback**: Open title detail screen, verify Nuvio header renders, tap Play, verify player launches without regressions.
+- [ ] **Library & Progress**: Add title to Library (bookmarks / watching), verify item displays in Library grid with watch-progress bar.
+- [ ] **Settings Customization**: Navigate Settings -> UI / Appearance, verify Nuvio theme tokens and colors render cleanly.
+
+---
+
+## 9. Blocked Section
+*None. All target screens have been migrated to Nuvio design system.*

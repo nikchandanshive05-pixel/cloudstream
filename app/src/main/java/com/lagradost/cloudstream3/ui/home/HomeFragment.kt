@@ -79,6 +79,7 @@ import com.lagradost.cloudstream3.utils.AppContextUtils.getApiProviderLangSettin
 import com.lagradost.cloudstream3.utils.AppContextUtils.isNetworkAvailable
 import com.lagradost.cloudstream3.utils.AppContextUtils.isRecyclerScrollable
 import com.lagradost.cloudstream3.utils.AppContextUtils.loadSearchResult
+import com.lagradost.cloudstream3.utils.AppContextUtils.loadResult
 import com.lagradost.cloudstream3.utils.AppContextUtils.openBrowser
 import com.lagradost.cloudstream3.utils.AppContextUtils.ownHide
 import com.lagradost.cloudstream3.utils.AppContextUtils.ownShow
@@ -1095,7 +1096,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                 onHeroClick = { hero ->
                                       val previewList = (homeViewModel.preview.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)?.value?.second
                                       previewList?.firstOrNull { it.name == hero.title }?.let { item ->
-                                          activity?.loadSearchResult(item)
+                                          activity?.loadResult(item.url, item.apiName, item.name)
                                       }
                                   },
                                   onItemClick = { section, position ->
