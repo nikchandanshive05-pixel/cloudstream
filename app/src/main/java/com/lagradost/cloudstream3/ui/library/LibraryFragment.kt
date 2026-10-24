@@ -640,7 +640,7 @@ class LibraryFragment : BaseFragment<FragmentLibraryBinding>(
                     tabsState.value = pages.mapIndexed { idx, page ->
                         NuvioLibraryTab(
                             id = idx,
-                            title = page.name,
+                            title = page.title.asStringNull(context) ?: "Page ${idx + 1}",
                             count = page.items.size,
                         )
                     }
@@ -702,8 +702,8 @@ class LibraryFragment : BaseFragment<FragmentLibraryBinding>(
                             if (apis.isNotEmpty()) {
                                 act.showBottomDialog(
                                     apis,
-                                    apis.indexOf(libraryViewModel.currentSyncApi?.name),
-                                    act.getString(R.string.sync_and_account_settings),
+                                    apis.indexOf(libraryViewModel.currentApiName.value),
+                                    act.getString(R.string.select_library),
                                     false,
                                     {}
                                 ) { selectedIndex ->
