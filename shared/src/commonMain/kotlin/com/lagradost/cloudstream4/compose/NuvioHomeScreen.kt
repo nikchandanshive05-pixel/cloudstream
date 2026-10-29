@@ -6,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,11 +44,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -275,13 +278,37 @@ private fun NuvioHeroCinematicPager(
     onHeroClick: (HeroItem) -> Unit,
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
+    var dragAccumulator by remember { mutableFloatStateOf(0f) }
     val safeIndex = if (items.isNotEmpty()) currentIndex.coerceIn(0, items.size - 1) else 0
     val currentItem = items.getOrNull(safeIndex) ?: return
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(490.dp),
+            .height(490.dp)
+            .pointerInput(items.size) {
+                if (items.size > 1) {
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { _, dragAmount ->
+                            dragAccumulator += dragAmount
+                        },
+                        onDragEnd = {
+                            val threshold = 50f
+                            if (dragAccumulator < -threshold) {
+                                // Swiped left -> next
+                                currentIndex = (currentIndex + 1) % items.size
+                            } else if (dragAccumulator > threshold) {
+                                // Swiped right -> prev
+                                currentIndex = (currentIndex - 1 + items.size) % items.size
+                            }
+                            dragAccumulator = 0f
+                        },
+                        onDragCancel = {
+                            dragAccumulator = 0f
+                        }
+                    )
+                }
+            },
     ) {
         // High-res Backdrop
         val poster = currentItem.posterUrl

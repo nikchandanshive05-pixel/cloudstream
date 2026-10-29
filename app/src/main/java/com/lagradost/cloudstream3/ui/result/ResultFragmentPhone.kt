@@ -46,18 +46,6 @@ import com.lagradost.cloudstream3.databinding.FragmentResultSwipeBinding
 import com.lagradost.cloudstream3.databinding.ResultRecommendationsBinding
 import com.lagradost.cloudstream3.databinding.ResultSyncBinding
 import com.lagradost.cloudstream4.compose.NuvioDetailHeader
-
-import com.lagradost.cloudstream4.compose.NuvioDetailScreen
-import com.lagradost.cloudstream4.compose.NuvioDetailData
-import com.lagradost.cloudstream4.compose.NuvioCastMember
-import com.lagradost.cloudstream4.compose.NuvioEpisodeItem
-import com.lagradost.cloudstream4.compose.NuvioSeasonTab
-import com.lagradost.cloudstream4.compose.NuvioRecommendationItem
-import com.lagradost.cloudstream4.compose.NuvioActionState
-import com.lagradost.cloudstream3.utils.AppContextUtils.loadSearchResult
-import com.lagradost.cloudstream3.utils.DataStoreHelper
-import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.runtime.mutableStateOf
 import com.lagradost.cloudstream4.compose.NuvioTheme
 import com.lagradost.cloudstream3.databinding.TrailerCustomLayoutBinding
 import com.lagradost.cloudstream3.mvvm.Resource
@@ -451,15 +439,6 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
         resultBinding = binding.fragmentResult
         recommendationBinding = binding.resultRecommendations
         syncBinding = binding.resultSync
-        val isNuvioTheme = context?.let {
-            val themeName = DataStoreHelper.getThemeName(it)
-            themeName == "Nuvio"
-        } ?: false
-
-        if (isNuvioTheme) {
-            setupNuvioDetailScreen(binding)
-        }
-
         resultBinding?.resultNuvioDetail?.setViewCompositionStrategy(
             androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
         )
@@ -1097,8 +1076,7 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     resultErrorText.text = storedData.url.plus("\n") + data.errorString
                 }
 
-                val isNuvioFab = context?.let { DataStoreHelper.getThemeName(it) == "Nuvio" } ?: false
-                binding.resultBookmarkFab.isVisible = !isNuvioFab && data is Resource.Success
+                binding.resultBookmarkFab.isVisible = data is Resource.Success
                 resultFinishLoading.isVisible = data is Resource.Success
 
                 resultLoading.isVisible = data is Resource.Loading
@@ -1545,223 +1523,4 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
             }
         }
     }
-
-    private fun setupNuvioDetailScreen(binding: FragmentResultSwipeBinding) {
-        val rBinding = binding.fragmentResult ?: return
-        val composeView = rBinding.resultNuvioComposeFull ?: return
-
-        // In Nuvio theme, Compose handles both loading shimmer and content directly
-        rBinding.resultLoading.visibility = View.GONE
-        rBinding.resultLoadingError.visibility = View.GONE
-        rBinding.resultFinishLoading.visibility = View.VISIBLE
-        rBinding.resultScroll.visibility = View.GONE
-        composeView.visibility = View.VISIBLE
-        binding.resultTopBar.visibility = View.GONE
-
-        // Lock side panels so horizontal scrolls inside Compose (episodes, cast, recommendations) don't trigger panel swipe gestures
-        binding.resultBookmarkFab.visibility = View.GONE
-        binding.resultOverlappingPanels.setStartPanelLockState(com.discord.panels.OverlappingPanelsLayout.LockState.CLOSE)
-        binding.resultOverlappingPanels.setEndPanelLockState(com.discord.panels.OverlappingPanelsLayout.LockState.CLOSE)
-
-        composeView.setViewCompositionStrategy(
-            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
-        )
-
-        val detailState = mutableStateOf<NuvioDetailData?>(null)
-        val actionState = mutableStateOf(NuvioActionState())
-        val castState = mutableStateOf<List<NuvioCastMember>>(emptyList())
-        val episodesState = mutableStateOf<List<NuvioEpisodeItem>>(emptyList())
-        val seasonsState = mutableStateOf<List<NuvioSeasonTab>>(emptyList())
-        val selectedSeasonState = mutableStateOf(1)
-        val recommendationsState = mutableStateOf<List<NuvioRecommendationItem>>(emptyList())
-        val isLoadingState = mutableStateOf(true)
-
-        observe(viewModel.page) { resource ->
-            when (resource) {
-                is Resource.Success -> {
-                    isLoadingState.value = false
-                    val d = resource.value
-                    val ctx = context
-                    detailState.value = NuvioDetailData(
-                        title = d.title,
-                        logoUrl = d.logoUrl,
-                        backdropUrl = d.backgroundPosterUrl ?: d.posterBackgroundImage ?: d.posterImage,
-                        posterUrl = d.posterImage,
-                        year = d.yearText?.asStringNull(ctx),
-                        duration = d.durationText?.asStringNull(ctx),
-                        rating = d.ratingText?.asStringNull(ctx),
-                        contentRating = d.contentRatingText?.asStringNull(ctx),
-                        genres = d.tags,
-                        director = d.actors?.firstOrNull { it.roleString?.contains("Director", true) == true }?.actor?.name,
-                        synopsis = d.plotText.asStringNull(ctx),
-                        status = d.onGoingText?.asStringNull(ctx),
-                        country = null,
-                        language = null,
-                        provider = d.apiName.asStringNull(ctx),
-                    )
-
-                    val castList = d.actors?.map { a ->
-                        NuvioCastMember(
-                            name = a.actor.name,
-                            role = a.roleString,
-                            imageUrl = a.actor.image,
-                        )
-                    } ?: d.actorsText?.asStringNull(ctx)?.split(",")?.map { name ->
-                        NuvioCastMember(name = name.trim())
-                    } ?: emptyList()
-                    castState.value = castList
-                }
-                is Resource.Loading -> {
-                    isLoadingState.value = true
-                }
-                is Resource.Failure -> {
-                    isLoadingState.value = false
-                }
-                else -> {}
-            }
-        }
-
-        observeNullable(viewModel.movie) { movieResource ->
-            (movieResource as? Resource.Success)?.value?.let { (text, _) ->
-                actionState.value = actionState.value.copy(
-                    playButtonText = text.asStringNull(context) ?: "Play Movie",
-                    canDownload = viewModel.currentRepo?.api?.hasDownloadSupport == true,
-                )
-            }
-        }
-
-        observeNullable(viewModel.resumeWatching) { resume ->
-            if (resume != null) {
-                val p = resume.progress
-                val pct = if (p != null && p.maxProgress > 0) p.progress.toFloat() / p.maxProgress.toFloat() else null
-                actionState.value = actionState.value.copy(
-                    isResume = true,
-                    playButtonText = "Resume",
-                    progressPercent = pct,
-                )
-            }
-        }
-
-        observe(viewModel.recommendations) { recs ->
-            recommendationsState.value = recs.map { rec ->
-                NuvioRecommendationItem(
-                    id = rec.url,
-                    title = rec.name,
-                    posterUrl = rec.posterUrl,
-                    rating = rec.score?.toString(),
-                    year = null,
-                    type = rec.type?.name,
-                )
-            }
-        }
-
-        observeNullable(viewModel.episodes) { epResource ->
-            val eps = (epResource as? Resource.Success)?.value ?: emptyList()
-            val distinctSeasons = eps.mapNotNull { it.season }.distinct().sorted()
-            seasonsState.value = distinctSeasons.map { s ->
-                NuvioSeasonTab(seasonNumber = s, name = "Season $s")
-            }
-            val curSeason = selectedSeasonState.value
-            val filteredEps = if (distinctSeasons.isNotEmpty()) {
-                eps.filter { it.season == curSeason }
-            } else eps
-
-            episodesState.value = filteredEps.map { ep ->
-                NuvioEpisodeItem(
-                    id = "${ep.id}",
-                    episodeNumber = ep.episode,
-                    seasonNumber = ep.season,
-                    name = ep.name ?: "Episode ${ep.episode}",
-                    description = ep.description,
-                    posterUrl = ep.poster,
-                    duration = ep.runTime?.let { "${it}m" } ?: if (ep.duration > 0) "${ep.duration / 60000}m" else null,
-                    rating = ep.score?.toString(),
-                )
-            }
-        }
-
-        composeView.setContent {
-            NuvioTheme {
-                NuvioDetailScreen(
-                    detail = detailState.value,
-                    actionState = actionState.value,
-                    cast = castState.value,
-                    episodes = episodesState.value,
-                    seasons = seasonsState.value,
-                    selectedSeason = selectedSeasonState.value,
-                    onSeasonSelected = { newSeason ->
-                        selectedSeasonState.value = newSeason
-                        val eps = (viewModel.episodes.value as? Resource.Success)?.value ?: emptyList()
-                        episodesState.value = eps.filter { it.season == newSeason }.map { ep ->
-                            NuvioEpisodeItem(
-                                id = "${ep.id}",
-                                episodeNumber = ep.episode,
-                                seasonNumber = ep.season,
-                                name = ep.name ?: "Episode ${ep.episode}",
-                                description = ep.description,
-                                posterUrl = ep.poster,
-                                duration = ep.runTime?.let { "${it}m" } ?: if (ep.duration > 0) "${ep.duration / 60000}m" else null,
-                                rating = ep.score?.toString(),
-                            )
-                        }
-                    },
-                    recommendations = recommendationsState.value,
-                    onPlayClick = {
-                        val movieData = (viewModel.movie.value as? Resource.Success)?.value
-                        if (movieData != null) {
-                            viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, movieData.second))
-                        } else {
-                            val resumeEp = viewModel.resumeWatching.value?.result
-                            if (resumeEp != null) {
-                                viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, resumeEp))
-                            } else {
-                                val eps = (viewModel.episodes.value as? Resource.Success<*>)?.value as? List<ResultEpisode>
-                                val firstEp = eps?.firstOrNull()
-                                if (firstEp != null) {
-                                    viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, firstEp))
-                                }
-                            }
-                        }
-                    },
-                    onOptionsClick = {
-                        val currentWatchType = viewModel.watchStatus.value ?: WatchType.NONE
-                        activity?.showBottomDialog(
-                            WatchType.entries.map { context?.getString(it.stringRes).orEmpty() }.toList(),
-                            currentWatchType.ordinal,
-                            context?.getString(R.string.action_add_to_bookmarks) ?: "Bookmarks",
-                            false,
-                            {}
-                        ) { selectedIdx ->
-                            viewModel.updateWatchStatus(WatchType.entries[selectedIdx], context)
-                        }
-                    },
-                    onDownloadClick = {
-                        val movieData = (viewModel.movie.value as? Resource.Success)?.value
-                        if (movieData != null) {
-                            requirePathForActions(listOf(ACTION_DOWNLOAD_EPISODE to movieData.second))
-                        }
-                    },
-                    onEpisodeClick = { epItem ->
-                        val eps = (viewModel.episodes.value as? Resource.Success)?.value ?: emptyList()
-                        val ep = eps.firstOrNull { "${it.id}" == epItem.id }
-                        if (ep != null) {
-                            viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, ep))
-                        }
-                    },
-                    onRecommendationClick = { recItem ->
-                        val recs = viewModel.recommendations.value ?: emptyList()
-                        val target = recs.firstOrNull { it.url == recItem.id }
-                        if (target != null) {
-                            activity?.loadSearchResult(target)
-                        }
-                    },
-                    onBackClick = {
-                        activity?.onBackPressedDispatcher?.onBackPressed()
-                    },
-                    isLoading = isLoadingState.value,
-                )
-            }
-        }
-    }
-
 }
