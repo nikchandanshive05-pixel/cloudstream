@@ -954,7 +954,7 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                                 ).filter { it.isNotBlank() },
                                 description = d.plotText.asStringNull(context).orEmpty(),
                                 tags = d.tags,
-                                playButtonText = if (d.type.isMovieType()) "Play Movie" else "Play",
+                                playButtonText = if (d.typeText.asStringNull(context)?.contains("Movie", ignoreCase = true) == true) "Play Movie" else "Play",
                                 isBookmarked = viewModel.watchStatus.value != null && viewModel.watchStatus.value != WatchType.NONE,
                                 onPlayClick = {
                                     resultPlayMovie.performClick()
@@ -975,7 +975,7 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                                     }
                                 },
                                 onShareClick = {
-                                    resultShare.performClick()
+                                    binding.resultShare.performClick()
                                 },
                             )
                         }
