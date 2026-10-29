@@ -954,6 +954,29 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                                 ).filter { it.isNotBlank() },
                                 description = d.plotText.asStringNull(context).orEmpty(),
                                 tags = d.tags,
+                                playButtonText = if (d.type.isMovieType()) "Play Movie" else "Play",
+                                isBookmarked = viewModel.watchStatus.value != null && viewModel.watchStatus.value != WatchType.NONE,
+                                onPlayClick = {
+                                    resultPlayMovie.performClick()
+                                },
+                                onDownloadClick = {
+                                    downloadButton.performClick()
+                                },
+                                onBookmarkClick = {
+                                    val currentWatchType = viewModel.watchStatus.value ?: WatchType.NONE
+                                    activity?.showBottomDialog(
+                                        WatchType.entries.map { context?.getString(it.stringRes).orEmpty() }.toList(),
+                                        currentWatchType.ordinal,
+                                        context?.getString(R.string.action_add_to_bookmarks) ?: "Bookmarks",
+                                        false,
+                                        {}
+                                    ) { selectedIdx ->
+                                        viewModel.updateWatchStatus(WatchType.entries[selectedIdx], context)
+                                    }
+                                },
+                                onShareClick = {
+                                    resultShare.performClick()
+                                },
                             )
                         }
                     }
