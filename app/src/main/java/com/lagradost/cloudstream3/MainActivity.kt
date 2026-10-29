@@ -180,6 +180,16 @@ import com.lagradost.cloudstream3.utils.setText
 import com.lagradost.cloudstream3.utils.setTextHtml
 import com.lagradost.cloudstream3.utils.txt
 import com.lagradost.cloudstream4.compose.CloudStreamThemeAppSettings
+import com.lagradost.cloudstream4.compose.NuvioFloatingBottomBar
+import com.lagradost.cloudstream4.compose.NuvioNavigationItem
+import com.lagradost.cloudstream4.compose.NuvioTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.mutableIntStateOf
 import com.lagradost.cloudstream4.theme.CloudStreamTheme
 import com.lagradost.safefile.SafeFile
 import kotlinx.coroutines.Job
@@ -490,6 +500,68 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener, BiometricCa
         navHostFragment.navController.currentDestination?.let { updateNavBar(it) }
     }
 
+    private val nuvioSelectedNavId = mutableIntStateOf(R.id.navigation_home)
+
+    private fun setupNuvioBottomBar(navController: NavController) {
+        val composeNav = binding?.navNuvioCompose ?: return
+        composeNav.setViewCompositionStrategy(
+            androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
+        composeNav.setContent {
+            NuvioTheme {
+                val currentSelected = nuvioSelectedNavId.intValue
+                val navItems = listOf(
+                    NuvioNavigationItem(
+                        id = R.id.navigation_home,
+                        label = getString(R.string.title_home),
+                        selected = currentSelected == R.id.navigation_home,
+                        icon = Icons.Default.Home,
+                        onClick = {
+                            binding?.navView?.selectedItemId = R.id.navigation_home
+                        }
+                    ),
+                    NuvioNavigationItem(
+                        id = R.id.navigation_search,
+                        label = getString(R.string.title_search),
+                        selected = currentSelected == R.id.navigation_search,
+                        icon = Icons.Default.Search,
+                        onClick = {
+                            binding?.navView?.selectedItemId = R.id.navigation_search
+                        }
+                    ),
+                    NuvioNavigationItem(
+                        id = R.id.navigation_library,
+                        label = getString(R.string.library),
+                        selected = currentSelected == R.id.navigation_library,
+                        icon = Icons.Default.VideoLibrary,
+                        onClick = {
+                            binding?.navView?.selectedItemId = R.id.navigation_library
+                        }
+                    ),
+                    NuvioNavigationItem(
+                        id = R.id.navigation_downloads,
+                        label = getString(R.string.title_downloads),
+                        selected = currentSelected == R.id.navigation_downloads,
+                        icon = Icons.Default.Download,
+                        onClick = {
+                            binding?.navView?.selectedItemId = R.id.navigation_downloads
+                        }
+                    ),
+                    NuvioNavigationItem(
+                        id = R.id.navigation_settings,
+                        label = getString(R.string.title_settings),
+                        selected = currentSelected == R.id.navigation_settings,
+                        icon = Icons.Default.Settings,
+                        onClick = {
+                            binding?.navView?.selectedItemId = R.id.navigation_settings
+                        }
+                    ),
+                )
+                NuvioFloatingBottomBar(items = navItems)
+            }
+        }
+    }
+
     private fun updateNavBar(destination: NavDestination) {
         this.hideKeyboard()
 
@@ -556,9 +628,20 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener, BiometricCa
             layoutParams = params
         }*/
 
+        val isNuvioTheme = DataStoreHelper.getThemeName(this) == "Nuvio"
+        nuvioSelectedNavId.intValue = when (destination.id) {
+            in listOf(R.id.navigation_home) -> R.id.navigation_home
+            in listOf(R.id.navigation_search) -> R.id.navigation_search
+            in listOf(R.id.navigation_library) -> R.id.navigation_library
+            in listOf(R.id.navigation_downloads, R.id.navigation_download_child, R.id.navigation_download_queue) -> R.id.navigation_downloads
+            in listOf(R.id.navigation_settings, R.id.navigation_subtitles, R.id.navigation_chrome_subtitles, R.id.navigation_settings_player, R.id.navigation_settings_updates, R.id.navigation_settings_ui, R.id.navigation_settings_account, R.id.navigation_settings_providers, R.id.navigation_settings_general, R.id.navigation_settings_extensions, R.id.navigation_settings_plugins, R.id.navigation_test_providers) -> R.id.navigation_settings
+            else -> destination.id
+        }
+
         binding?.apply {
             navRailView.isVisible = isNavVisible && isLandscape()
-            navView.isVisible = isNavVisible && !isLandscape()
+            navView.isVisible = isNavVisible && !isLandscape() && !isNuvioTheme
+            navNuvioCompose.isVisible = isNavVisible && !isLandscape() && isNuvioTheme
             navHostFragment.apply {
                 val marginPx = resources.getDimensionPixelSize(R.dimen.nav_rail_view_width)
                 layoutParams =
@@ -1717,8 +1800,9 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener, BiometricCa
                     navController
                 )
             }
-
         }
+
+        setupNuvioBottomBar(navController)
 
         binding?.navRailView?.apply {
             if (isLayout(PHONE)) {

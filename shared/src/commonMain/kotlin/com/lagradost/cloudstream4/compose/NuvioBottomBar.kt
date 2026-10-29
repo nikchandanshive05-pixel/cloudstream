@@ -19,10 +19,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,19 +62,19 @@ fun NuvioFloatingBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .widthIn(max = 420.dp)
+                .widthIn(max = 440.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(50.dp))
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xE6222429),
-                            Color(0xF0151619),
+                            Color(0xF0181A1F),
+                            Color(0xF80E1013),
                         )
                     )
                 )
@@ -81,13 +82,13 @@ fun NuvioFloatingBottomBar(
                     width = 0.8.dp,
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0x33FFFFFF),
+                            Color(0x35FFFFFF),
                             Color(0x10FFFFFF),
                         )
                     ),
                     shape = RoundedCornerShape(50.dp)
                 )
-                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .padding(horizontal = 6.dp, vertical = 5.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -97,7 +98,7 @@ fun NuvioFloatingBottomBar(
                 items.forEach { item ->
                     val interactionSource = remember { MutableInteractionSource() }
                     val contentColor by animateColorAsState(
-                        targetValue = if (item.selected) NuvioColors.Gold else Color(0xFF8E95A5),
+                        targetValue = if (item.selected) NuvioColors.Gold else Color(0xFF888F9E),
                         animationSpec = tween(durationMillis = 200),
                         label = "nav_item_color"
                     )
@@ -111,7 +112,7 @@ fun NuvioFloatingBottomBar(
                                 indication = null,
                                 onClick = item.onClick
                             )
-                            .padding(vertical = 6.dp),
+                            .padding(vertical = 5.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -122,12 +123,12 @@ fun NuvioFloatingBottomBar(
                                 imageVector = item.icon,
                                 contentDescription = item.label,
                                 tint = contentColor,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                             Text(
                                 text = item.label,
                                 color = contentColor,
-                                fontSize = 11.sp,
+                                fontSize = 10.sp,
                                 fontWeight = if (item.selected) FontWeight.Bold else FontWeight.Medium,
                                 modifier = Modifier.padding(top = 2.dp)
                             )
