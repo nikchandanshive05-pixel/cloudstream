@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -57,6 +58,31 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+
+@Immutable
+data class HomePageSection(
+    val title: String,
+    val subtitle: String? = null,
+    val items: List<HomePageItem>,
+)
+
+@Immutable
+data class HomePageItem(
+    val title: String,
+    val subtitle: String? = null,
+    val rating: String? = null,
+    val posterUrl: String? = null,
+    val image: (@Composable () -> Unit)? = null,
+    val position: Int = 0,
+)
+
+@Immutable
+data class HeroItem(
+    val title: String,
+    val subtitle: String? = null,
+    val posterUrl: String? = null,
+    val image: (@Composable BoxScope.() -> Unit)? = null,
+)
 
 @Composable
 fun NuvioHomeScreen(
