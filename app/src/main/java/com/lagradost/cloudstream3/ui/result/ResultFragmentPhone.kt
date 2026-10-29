@@ -1549,7 +1549,10 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
         val rBinding = binding.fragmentResult ?: return
         val composeView = rBinding.resultNuvioComposeFull ?: return
 
-        // Hide legacy XML scroll container and old top bar in Nuvio theme
+        // In Nuvio theme, Compose handles both loading shimmer and content directly
+        rBinding.resultLoading.visibility = View.GONE
+        rBinding.resultLoadingError.visibility = View.GONE
+        rBinding.resultFinishLoading.visibility = View.VISIBLE
         rBinding.resultScroll.visibility = View.GONE
         composeView.visibility = View.VISIBLE
         binding.resultTopBar.visibility = View.GONE
