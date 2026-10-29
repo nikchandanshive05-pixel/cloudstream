@@ -180,15 +180,8 @@ import com.lagradost.cloudstream3.utils.setText
 import com.lagradost.cloudstream3.utils.setTextHtml
 import com.lagradost.cloudstream3.utils.txt
 import com.lagradost.cloudstream4.compose.CloudStreamThemeAppSettings
-import com.lagradost.cloudstream4.compose.NuvioFloatingBottomBar
-import com.lagradost.cloudstream4.compose.NuvioNavigationItem
+import com.lagradost.cloudstream4.compose.NuvioMainBottomBar
 import com.lagradost.cloudstream4.compose.NuvioTheme
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.mutableIntStateOf
 import com.lagradost.cloudstream4.theme.CloudStreamTheme
 import com.lagradost.safefile.SafeFile
@@ -509,55 +502,22 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener, BiometricCa
         )
         composeNav.setContent {
             NuvioTheme {
-                val currentSelected = nuvioSelectedNavId.intValue
-                val navItems = listOf(
-                    NuvioNavigationItem(
-                        id = R.id.navigation_home,
-                        label = getString(R.string.title_home),
-                        selected = currentSelected == R.id.navigation_home,
-                        icon = Icons.Default.Home,
-                        onClick = {
-                            binding?.navView?.selectedItemId = R.id.navigation_home
-                        }
-                    ),
-                    NuvioNavigationItem(
-                        id = R.id.navigation_search,
-                        label = getString(R.string.title_search),
-                        selected = currentSelected == R.id.navigation_search,
-                        icon = Icons.Default.Search,
-                        onClick = {
-                            binding?.navView?.selectedItemId = R.id.navigation_search
-                        }
-                    ),
-                    NuvioNavigationItem(
-                        id = R.id.navigation_library,
-                        label = getString(R.string.library),
-                        selected = currentSelected == R.id.navigation_library,
-                        icon = Icons.Default.VideoLibrary,
-                        onClick = {
-                            binding?.navView?.selectedItemId = R.id.navigation_library
-                        }
-                    ),
-                    NuvioNavigationItem(
-                        id = R.id.navigation_downloads,
-                        label = getString(R.string.title_downloads),
-                        selected = currentSelected == R.id.navigation_downloads,
-                        icon = Icons.Default.Download,
-                        onClick = {
-                            binding?.navView?.selectedItemId = R.id.navigation_downloads
-                        }
-                    ),
-                    NuvioNavigationItem(
-                        id = R.id.navigation_settings,
-                        label = getString(R.string.title_settings),
-                        selected = currentSelected == R.id.navigation_settings,
-                        icon = Icons.Default.Settings,
-                        onClick = {
-                            binding?.navView?.selectedItemId = R.id.navigation_settings
-                        }
-                    ),
+                NuvioMainBottomBar(
+                    selectedId = nuvioSelectedNavId.intValue,
+                    homeId = R.id.navigation_home,
+                    searchId = R.id.navigation_search,
+                    libraryId = R.id.navigation_library,
+                    downloadsId = R.id.navigation_downloads,
+                    settingsId = R.id.navigation_settings,
+                    homeLabel = getString(R.string.title_home),
+                    searchLabel = getString(R.string.title_search),
+                    libraryLabel = getString(R.string.library),
+                    downloadsLabel = getString(R.string.title_downloads),
+                    settingsLabel = getString(R.string.title_settings),
+                    onItemSelected = { targetId ->
+                        binding?.navView?.selectedItemId = targetId
+                    }
                 )
-                NuvioFloatingBottomBar(items = navItems)
             }
         }
     }

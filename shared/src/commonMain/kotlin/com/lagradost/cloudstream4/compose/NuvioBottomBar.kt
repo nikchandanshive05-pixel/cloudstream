@@ -50,6 +50,68 @@ data class NuvioNavigationItem(
 )
 
 /**
+ * Encapsulated high-level bottom bar that maps directly to the standard 5 main CloudStream destinations
+ * without requiring the consumer module (:app) to declare direct dependencies on compose icons.
+ */
+@Composable
+fun NuvioMainBottomBar(
+    selectedId: Int,
+    homeId: Int,
+    searchId: Int,
+    libraryId: Int,
+    downloadsId: Int,
+    settingsId: Int,
+    homeLabel: String = "Home",
+    searchLabel: String = "Search",
+    libraryLabel: String = "Library",
+    downloadsLabel: String = "Downloads",
+    settingsLabel: String = "Settings",
+    onItemSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val items = remember(selectedId, homeId, searchId, libraryId, downloadsId, settingsId, homeLabel, searchLabel, libraryLabel, downloadsLabel, settingsLabel) {
+        listOf(
+            NuvioNavigationItem(
+                id = homeId,
+                label = homeLabel,
+                selected = selectedId == homeId,
+                icon = Icons.Default.Home,
+                onClick = { onItemSelected(homeId) }
+            ),
+            NuvioNavigationItem(
+                id = searchId,
+                label = searchLabel,
+                selected = selectedId == searchId,
+                icon = Icons.Default.Search,
+                onClick = { onItemSelected(searchId) }
+            ),
+            NuvioNavigationItem(
+                id = libraryId,
+                label = libraryLabel,
+                selected = selectedId == libraryId,
+                icon = Icons.Default.VideoLibrary,
+                onClick = { onItemSelected(libraryId) }
+            ),
+            NuvioNavigationItem(
+                id = downloadsId,
+                label = downloadsLabel,
+                selected = selectedId == downloadsId,
+                icon = Icons.Default.Download,
+                onClick = { onItemSelected(downloadsId) }
+            ),
+            NuvioNavigationItem(
+                id = settingsId,
+                label = settingsLabel,
+                selected = selectedId == settingsId,
+                icon = Icons.Default.Settings,
+                onClick = { onItemSelected(settingsId) }
+            ),
+        )
+    }
+    NuvioFloatingBottomBar(items = items, modifier = modifier)
+}
+
+/**
  * Floating glass capsule navigation bar replicating Nuvio Mobile.
  * Semi-translucent dark pill with subtle rim lighting and gold active state.
  */
