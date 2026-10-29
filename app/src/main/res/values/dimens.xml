@@ -14,6 +14,7 @@
     <dimen name="loading_margin">15dp</dimen>
 
     <integer name="loading_time">2000</integer>
+    <integer name="config_navAnimTime">250</integer>
 
     <dimen name="storage_radius">3dp</dimen>
     <dimen name="navbar_width">0dp</dimen>

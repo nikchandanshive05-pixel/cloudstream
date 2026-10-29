@@ -227,7 +227,8 @@ private fun NuvioSourceBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp)
+            .padding(top = 48.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -327,17 +328,18 @@ private fun NuvioHeroCinematicPager(
             )
         }
 
-        // Top Subtle Scrim with Source Chip
+        // Top Subtle Scrim with Source Chip (padded below system status bar)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(110.dp)
+                .height(130.dp)
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.85f), Color.Transparent)
+                        colors = listOf(Color.Black.copy(alpha = 0.88f), Color.Transparent)
                     )
                 )
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp)
+                .padding(top = 44.dp, bottom = 12.dp)
         ) {
             Surface(
                 onClick = onApiClick,

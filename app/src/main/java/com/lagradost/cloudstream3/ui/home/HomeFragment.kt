@@ -1084,7 +1084,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                     )
 
                     val apiNameState = androidx.compose.runtime.mutableStateOf(homeViewModel.apiName.value)
-                    val pageItemsState = androidx.compose.runtime.mutableStateOf<List<HomePageSection>>(emptyList())
+                    val rawPageItemsState = androidx.compose.runtime.mutableStateOf<List<HomePageSection>>(emptyList())
+                    val resumeWatchingState = androidx.compose.runtime.mutableStateOf<List<SearchResponse>>(emptyList())
                     val heroItemsState = androidx.compose.runtime.mutableStateOf<List<HeroItem>>(emptyList())
                     val isLoadingState = androidx.compose.runtime.mutableStateOf(homeViewModel.page.value is com.lagradost.cloudstream3.mvvm.Resource.Loading)
                     val errorState = androidx.compose.runtime.mutableStateOf<String?>(null)
@@ -1093,11 +1094,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                         apiNameState.value = api
                     }
 
+                    observe(homeViewModel.resumeWatching) { list ->
+                        resumeWatchingState.value = list ?: emptyList()
+                    }
+
                     observe(homeViewModel.page) { resource ->
                         isLoadingState.value = resource is com.lagradost.cloudstream3.mvvm.Resource.Loading
                         if (resource is com.lagradost.cloudstream3.mvvm.Resource.Success) {
                             errorState.value = null
-                            pageItemsState.value = convertToPageItems(resource)
+                            rawPageItemsState.value = convertToPageItems(resource)
                         } else if (resource is com.lagradost.cloudstream3.mvvm.Resource.Failure) {
                             errorState.value = resource.errorString
                         }
@@ -1110,11 +1115,43 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                     }
 
                     composeView.setContent {
+                        val combinedSections = androidx.compose.runtime.remember(rawPageItemsState.value, resumeWatchingState.value) {
+                            val list = mutableListOf<HomePageSection>()
+                            val resumeList = resumeWatchingState.value
+                            if (resumeList.isNotEmpty()) {
+                                list.add(
+                                    HomePageSection(
+                                        title = getString(R.string.continue_watching),
+                                        subtitle = null,
+                                        items = resumeList.mapIndexed { idx, item ->
+                                            val resumeItem = item as? DataStoreHelper.ResumeWatchingResult
+                                            val epText = if (resumeItem?.episode != null && resumeItem.season != null) {
+                                                "S" + resumeItem.season + ":E" + resumeItem.episode
+                                            } else if (resumeItem?.episode != null) {
+                                                "EP " + resumeItem.episode
+                                            } else {
+                                                "Resume"
+                                            }
+                                            HomePageItem(
+                                                title = item.name,
+                                                subtitle = epText,
+                                                rating = null,
+                                                posterUrl = item.posterUrl,
+                                                position = idx,
+                                            )
+                                        }
+                                    )
+                                )
+                            }
+                            list.addAll(rawPageItemsState.value)
+                            list
+                        }
+
                         NuvioTheme {
                             NuvioHomeScreen(
                                 modifier = androidx.compose.ui.Modifier.fillMaxSize(),
                                 apiName = apiNameState.value,
-                                pageItems = pageItemsState.value,
+                                pageItems = combinedSections,
                                 heroItems = heroItemsState.value,
                                 onApiClick = { context?.selectHomepage(apiNameState.value) { api ->
                                     homeViewModel.loadAndCancel(api, forceReload = true, fromUI = true)
@@ -1126,9 +1163,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                       }
                                   },
                                 onItemClick = { section, position ->
-                                      val searchItem = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
-                                          ?.value?.get(section.title)?.list?.list?.getOrNull(position)
-                                      searchItem?.let { activity?.loadSearchResult(it) }
+                                      val isContinueWatching = section.title.equals(getString(R.string.continue_watching), ignoreCase = true)
+                                      if (isContinueWatching) {
+                                          val resumeItem = resumeWatchingState.value.getOrNull(position)
+                                          resumeItem?.let { activity?.loadSearchResult(it) }
+                                      } else {
+                                          val searchItem = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
+                                              ?.value?.get(section.title)?.list?.list?.getOrNull(position)
+                                          searchItem?.let { activity?.loadSearchResult(it) }
+                                      }
                                   },
                                 onExpandClick = { section ->
                                     val expandable = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
@@ -1138,8 +1181,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                 isLoading = isLoadingState.value,
                                 error = errorState.value,
                                 onRetry = { homeViewModel.loadAndCancel(apiNameState.value ?: noneApi.name, forceReload = true) },
-                                showRandom = false,
-                                onRandomClick = { /* TODO */ },
+                                showRandom = true,
+                                onRandomClick = {
+                                    val allItems = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
+                                        ?.value?.values?.flatMap { it.list.list } ?: emptyList()
+                                    allItems.randomOrNull()?.let { activity?.loadSearchResult(it) }
+                                },
                             )
                         }
                     }
