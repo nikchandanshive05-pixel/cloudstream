@@ -841,6 +841,6 @@ object DataStoreHelper {
 
         fun getThemeName(context: Context): String {
             return androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(context.getString(R.string.app_theme_key), "AmoledLight") ?: "AmoledLight"
+                .getString(context.getString(R.string.app_theme_key), "Nuvio") ?: "Nuvio"
         }
 }

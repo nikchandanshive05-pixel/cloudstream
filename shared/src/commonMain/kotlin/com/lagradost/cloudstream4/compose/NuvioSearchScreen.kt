@@ -37,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+@Immutable
 data class NuvioSearchResultItem(
     val id: String,
     val name: String,
@@ -59,6 +61,7 @@ data class NuvioSearchResultItem(
     val apiName: String? = null,
 )
 
+@Immutable
 data class NuvioSearchHistoryEntry(
     val key: String,
     val query: String,

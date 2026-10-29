@@ -1554,6 +1554,10 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
         composeView.visibility = View.VISIBLE
         binding.resultTopBar.visibility = View.GONE
 
+        // Lock side panels so horizontal scrolls inside Compose (episodes, cast, recommendations) don't trigger panel swipe gestures
+        binding.resultOverlappingPanels.setStartPanelLockState(com.discord.panels.OverlappingPanelsLayout.LockState.CLOSE)
+        binding.resultOverlappingPanels.setEndPanelLockState(com.discord.panels.OverlappingPanelsLayout.LockState.CLOSE)
+
         composeView.setViewCompositionStrategy(
             ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
         )

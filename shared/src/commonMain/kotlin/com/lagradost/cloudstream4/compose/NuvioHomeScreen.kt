@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -308,12 +309,14 @@ private fun NuvioHeroCard(
     }
 }
 
+@Immutable
 data class HomePageSection(
     val title: String,
     val subtitle: String? = null,
     val items: List<HomePageItem>,
 )
 
+@Immutable
 data class HomePageItem(
     val title: String,
     val subtitle: String? = null,
@@ -323,6 +326,7 @@ data class HomePageItem(
     val position: Int = 0,
 )
 
+@Immutable
 data class HeroItem(
     val title: String,
     val subtitle: String? = null,

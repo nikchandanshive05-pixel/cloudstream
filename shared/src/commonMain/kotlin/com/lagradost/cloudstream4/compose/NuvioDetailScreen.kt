@@ -38,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
+@Immutable
 data class NuvioDetailData(
     val title: String,
     val logoUrl: String? = null,
@@ -73,12 +75,14 @@ data class NuvioDetailData(
     val provider: String? = null,
 )
 
+@Immutable
 data class NuvioCastMember(
     val name: String,
     val role: String? = null,
     val imageUrl: String? = null,
 )
 
+@Immutable
 data class NuvioEpisodeItem(
     val id: String,
     val episodeNumber: Int? = null,
@@ -91,11 +95,13 @@ data class NuvioEpisodeItem(
     val isDownloaded: Boolean = false,
 )
 
+@Immutable
 data class NuvioSeasonTab(
     val seasonNumber: Int,
     val name: String,
 )
 
+@Immutable
 data class NuvioRecommendationItem(
     val id: String,
     val title: String,
@@ -105,6 +111,7 @@ data class NuvioRecommendationItem(
     val type: String? = null,
 )
 
+@Immutable
 data class NuvioActionState(
     val isResume: Boolean = false,
     val playButtonText: String = "Play Movie",
