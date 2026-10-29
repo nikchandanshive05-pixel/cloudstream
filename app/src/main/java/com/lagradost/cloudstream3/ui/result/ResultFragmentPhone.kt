@@ -1097,7 +1097,8 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     resultErrorText.text = storedData.url.plus("\n") + data.errorString
                 }
 
-                binding.resultBookmarkFab.isVisible = data is Resource.Success
+                val isNuvioFab = context?.let { DataStoreHelper.getThemeName(it) == "Nuvio" } ?: false
+                binding.resultBookmarkFab.isVisible = !isNuvioFab && data is Resource.Success
                 resultFinishLoading.isVisible = data is Resource.Success
 
                 resultLoading.isVisible = data is Resource.Loading
@@ -1558,6 +1559,7 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
         binding.resultTopBar.visibility = View.GONE
 
         // Lock side panels so horizontal scrolls inside Compose (episodes, cast, recommendations) don't trigger panel swipe gestures
+        binding.resultBookmarkFab.visibility = View.GONE
         binding.resultOverlappingPanels.setStartPanelLockState(com.discord.panels.OverlappingPanelsLayout.LockState.CLOSE)
         binding.resultOverlappingPanels.setEndPanelLockState(com.discord.panels.OverlappingPanelsLayout.LockState.CLOSE)
 

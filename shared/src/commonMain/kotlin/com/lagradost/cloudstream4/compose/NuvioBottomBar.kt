@@ -1,37 +1,140 @@
 package com.lagradost.cloudstream4.compose
 
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+@Immutable
 data class NuvioNavigationItem(
+    val id: Int,
     val label: String,
     val selected: Boolean,
-    val icon: @Composable () -> Unit,
+    val icon: ImageVector,
     val onClick: () -> Unit,
 )
 
+/**
+ * Floating glass capsule navigation bar replicating Nuvio Mobile.
+ * Semi-translucent dark pill with subtle rim lighting and gold active state.
+ */
 @Composable
-fun NuvioBottomBar(items: List<NuvioNavigationItem>, modifier: Modifier = Modifier) {
-    NavigationBar(modifier = modifier, containerColor = NuvioColors.Surface, contentColor = NuvioColors.TextSecondary) {
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = item.selected,
-                onClick = item.onClick,
-                icon = item.icon,
-                label = { Text(item.label) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = NuvioColors.Gold,
-                    selectedTextColor = NuvioColors.Gold,
-                    indicatorColor = NuvioColors.GoldFocus,
-                    unselectedIconColor = NuvioColors.TextTertiary,
-                    unselectedTextColor = NuvioColors.TextTertiary,
-                ),
-            )
+fun NuvioFloatingBottomBar(
+    items: List<NuvioNavigationItem>,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 420.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(50.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xE6222429),
+                            Color(0xF0151619),
+                        )
+                    )
+                )
+                .border(
+                    width = 0.8.dp,
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x33FFFFFF),
+                            Color(0x10FFFFFF),
+                        )
+                    ),
+                    shape = RoundedCornerShape(50.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                items.forEach { item ->
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val contentColor by animateColorAsState(
+                        targetValue = if (item.selected) NuvioColors.Gold else Color(0xFF8E95A5),
+                        animationSpec = tween(durationMillis = 200),
+                        label = "nav_item_color"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(40.dp))
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null,
+                                onClick = item.onClick
+                            )
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.label,
+                                tint = contentColor,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Text(
+                                text = item.label,
+                                color = contentColor,
+                                fontSize = 11.sp,
+                                fontWeight = if (item.selected) FontWeight.Bold else FontWeight.Medium,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

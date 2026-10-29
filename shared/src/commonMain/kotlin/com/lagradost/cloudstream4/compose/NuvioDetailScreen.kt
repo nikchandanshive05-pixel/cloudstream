@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,9 +28,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -140,7 +145,7 @@ fun NuvioDetailScreen(
     isLoading: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    if (isLoading || detail == null) {
+    if (isLoading && detail == null) {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -148,6 +153,30 @@ fun NuvioDetailScreen(
             contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator(color = NuvioColors.Gold, strokeWidth = 2.5.dp)
+        }
+        return
+    }
+
+    if (detail == null) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(NuvioColors.Background),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Unable to load media details", color = Color.White, fontSize = 16.sp)
+                Surface(
+                    onClick = onBackClick,
+                    shape = RoundedCornerShape(20.dp),
+                    color = NuvioColors.Gold,
+                ) {
+                    Text("Go Back", color = Color.Black, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+                }
+            }
         }
         return
     }
@@ -162,14 +191,14 @@ fun NuvioDetailScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 64.dp),
+            contentPadding = PaddingValues(bottom = 90.dp),
         ) {
             // Section 1: Hero Backdrop & Top Floating Controls
             item(key = "detail_hero") {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(if (isWideScreen) 440.dp else 360.dp),
+                        .height(if (isWideScreen) 460.dp else 400.dp),
                 ) {
                     val backdropModel = detail.backdropUrl ?: detail.posterUrl
                     if (!backdropModel.isNullOrBlank()) {
@@ -185,10 +214,10 @@ fun NuvioDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(90.dp)
+                            .height(100.dp)
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(Color.Black.copy(alpha = 0.75f), Color.Transparent)
+                                    colors = listOf(Color.Black.copy(alpha = 0.85f), Color.Transparent)
                                 )
                             )
                     )
@@ -201,25 +230,27 @@ fun NuvioDetailScreen(
                                 Brush.verticalGradient(
                                     colors = listOf(
                                         Color.Transparent,
-                                        Color(0x990D0D0D),
+                                        Color(0x660D0D0D),
+                                        Color(0xCC0D0D0D),
                                         NuvioColors.Background,
                                     )
                                 )
                             )
                     )
 
-                    // Floating Back Button
+                    // Floating Top Navigation Row (Back, Options/Bookmarks)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Surface(
                             onClick = onBackClick,
                             shape = CircleShape,
-                            color = Color.Black.copy(alpha = 0.45f),
-                            modifier = Modifier.size(40.dp),
+                            color = Color.Black.copy(alpha = 0.55f),
+                            modifier = Modifier.size(42.dp),
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
@@ -230,11 +261,29 @@ fun NuvioDetailScreen(
                                 )
                             }
                         }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Surface(
+                                onClick = onOptionsClick,
+                                shape = CircleShape,
+                                color = Color.Black.copy(alpha = 0.55f),
+                                modifier = Modifier.size(42.dp),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = if (actionState.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                        contentDescription = "Bookmark",
+                                        tint = if (actionState.isBookmarked) NuvioColors.Gold else Color.White,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            // Section 2: Header Metadata, Title, Genres, Overview & Actions (Centered Container)
+            // Section 2: Header Metadata, Title, Overview & Play Actions
             item(key = "detail_header_content") {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -247,307 +296,245 @@ fun NuvioDetailScreen(
                             .padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
-                        // Title or Graphic Logo
-                        if (!detail.logoUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = detail.logoUrl,
-                                contentDescription = detail.title,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier
-                                    .heightIn(max = 72.dp)
-                                    .fillMaxWidth(0.7f),
-                            )
-                        } else {
-                            Text(
-                                text = detail.title,
-                                fontSize = if (isWideScreen) 32.sp else 26.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = NuvioColors.TextPrimary,
-                                letterSpacing = (-0.5).sp,
-                            )
-                        }
+                        // Title
+                        Text(
+                            text = detail.title,
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-0.5).sp,
+                        )
 
-                        // Metadata Badges Row: Year • Runtime • [Content Rating] • [IMDb ⭐ 7.5]
+                        // Metadata Badges (Rating, Year, Duration, Content Rating)
                         Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            if (!detail.year.isNullOrBlank()) {
-                                Text(
-                                    text = detail.year,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = NuvioColors.TextSecondary,
-                                )
-                            }
-
-                            if (!detail.duration.isNullOrBlank()) {
-                                Text(
-                                    text = detail.duration,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = NuvioColors.TextSecondary,
-                                )
+                            if (!detail.rating.isNullOrBlank()) {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = Color(0x22E8A91C),
+                                    border = BorderStroke(0.6.dp, NuvioColors.Gold.copy(alpha = 0.6f)),
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    ) {
+                                        Text(
+                                            text = "IMDb",
+                                            color = NuvioColors.Gold,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                        )
+                                        Text(
+                                            text = detail.rating,
+                                            color = Color.White,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                    }
+                                }
                             }
 
                             if (!detail.contentRating.isNullOrBlank()) {
                                 Surface(
                                     shape = RoundedCornerShape(4.dp),
-                                    color = Color.Transparent,
-                                    border = BorderStroke(1.dp, Color(0x55FFFFFF)),
-                                    modifier = Modifier.padding(horizontal = 2.dp),
+                                    color = Color(0x33FFFFFF),
+                                    border = BorderStroke(0.6.dp, Color(0x44FFFFFF)),
                                 ) {
                                     Text(
                                         text = detail.contentRating,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = NuvioColors.TextPrimary,
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     )
                                 }
                             }
 
-                            if (!detail.rating.isNullOrBlank()) {
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = NuvioColors.GoldHighlight,
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            if (!detail.duration.isNullOrBlank()) {
+                                Text(
+                                    text = detail.duration,
+                                    color = Color(0xFFC7CBD3),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                            }
+
+                            if (!detail.year.isNullOrBlank()) {
+                                Text(
+                                    text = "•",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp,
+                                )
+                                Text(
+                                    text = detail.year,
+                                    color = Color(0xFFC7CBD3),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                            }
+                        }
+
+                        // Genres pills
+                        if (detail.genres.isNotEmpty()) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(detail.genres) { genre ->
+                                    Surface(
+                                        shape = RoundedCornerShape(14.dp),
+                                        color = Color(0xFF1E2024),
+                                        border = BorderStroke(0.6.dp, Color(0x33FFFFFF)),
                                     ) {
                                         Text(
-                                            text = "IMDb",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF111111),
-                                        )
-                                        Text(
-                                            text = detail.rating,
+                                            text = genre,
+                                            color = Color(0xFFC7CBD3),
                                             fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF111111),
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                         )
                                     }
                                 }
                             }
                         }
 
-                        // Genres Line: Action • Science Fiction
-                        if (detail.genres.isNotEmpty()) {
-                            Text(
-                                text = detail.genres.joinToString(" • "),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = NuvioColors.TextSecondary,
-                            )
-                        }
-
-                        // Director Line: Director: Sam Raimi
-                        if (!detail.director.isNullOrBlank()) {
-                            Text(
-                                text = "Director: ${detail.director}",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = NuvioColors.TextSecondary,
-                            )
-                        }
-
-                        // Synopsis / Plot with smooth expand
-                        if (!detail.synopsis.isNullOrBlank()) {
-                            var isExpanded by remember { mutableStateOf(false) }
-                            Text(
-                                text = detail.synopsis,
-                                fontSize = 13.5.sp,
-                                lineHeight = 19.sp,
-                                color = NuvioColors.TextSecondary,
-                                maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .clickable { isExpanded = !isExpanded }
-                                    .animateContentSize(),
-                            )
-                        }
-
-                        // Primary Action Row: Pill Button [ ▶ Play / Resume ] + Circle [ ... ]
+                        // Play / Resume White Pill Action Button
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.padding(top = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Surface(
                                 onClick = onPlayClick,
-                                shape = RoundedCornerShape(26.dp),
+                                shape = RoundedCornerShape(40.dp),
                                 color = Color.White,
-                                modifier = Modifier
-                                    .height(48.dp)
-                                    .weight(1f, fill = false)
-                                    .widthIn(min = 160.dp, max = 280.dp),
+                                modifier = Modifier.weight(1f),
+                                shadowElevation = 4.dp,
                             ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.padding(horizontal = 22.dp),
+                                Row(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        Icon(
-                                            Icons.Default.PlayArrow,
-                                            contentDescription = null,
-                                            tint = Color.Black,
-                                            modifier = Modifier.size(20.dp),
-                                        )
-                                        Text(
-                                            text = actionState.playButtonText,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.Black,
-                                        )
-                                    }
-
-                                    // Subtle progress line at bottom of pill if resuming
-                                    if (actionState.progressPercent != null && actionState.progressPercent > 0f) {
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomCenter)
-                                                .fillMaxWidth()
-                                                .height(3.dp)
-                                                .background(Color(0xFFE0E0E0)),
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth(actionState.progressPercent.coerceIn(0f, 1f))
-                                                    .height(3.dp)
-                                                    .background(NuvioColors.Gold),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Circular [ ... ] Options Button
-                            Surface(
-                                onClick = onOptionsClick,
-                                shape = CircleShape,
-                                color = NuvioColors.Surface,
-                                border = BorderStroke(1.dp, NuvioColors.Card),
-                                modifier = Modifier.size(48.dp),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
                                     Icon(
-                                        Icons.Default.MoreHoriz,
-                                        contentDescription = "Options",
-                                        tint = NuvioColors.TextPrimary,
-                                        modifier = Modifier.size(22.dp),
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = "Play",
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = actionState.playButtonText,
+                                        color = Color.Black,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
                                     )
                                 }
                             }
 
-                            // Optional Circular Download Button
                             if (actionState.canDownload) {
                                 Surface(
                                     onClick = onDownloadClick,
                                     shape = CircleShape,
-                                    color = NuvioColors.Surface,
-                                    border = BorderStroke(1.dp, NuvioColors.Card),
-                                    modifier = Modifier.size(48.dp),
+                                    color = Color(0xFF1E2024),
+                                    modifier = Modifier.size(46.dp),
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             Icons.Default.Download,
                                             contentDescription = "Download",
-                                            tint = NuvioColors.TextPrimary,
+                                            tint = Color.White,
                                             modifier = Modifier.size(20.dp),
                                         )
                                     }
                                 }
                             }
                         }
+
+                        // Synopsis / Plot
+                        if (!detail.synopsis.isNullOrBlank()) {
+                            var isExpanded by remember { mutableStateOf(false) }
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize()
+                                    .clickable { isExpanded = !isExpanded },
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    text = detail.synopsis,
+                                    color = Color(0xFFC7CBD3),
+                                    fontSize = 13.sp,
+                                    lineHeight = 19.sp,
+                                    maxLines = if (isExpanded) 20 else 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = if (isExpanded) "Show Less" else "More",
+                                    color = NuvioColors.Gold,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            // Section 3: Cast Rail (Circular Headshots)
+            // Section 3: Cast Members (Circular Avatars)
             if (cast.isNotEmpty()) {
-                item(key = "detail_cast_section") {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
+                item(key = "detail_cast") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .widthIn(max = contentMaxWidth)
-                                .fillMaxWidth()
-                                .padding(top = 28.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                        Text(
+                            text = "Cast",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                        )
+
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
                         ) {
-                            Text(
-                                text = "Cast",
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = NuvioColors.TextPrimary,
-                                modifier = Modifier.padding(horizontal = 20.dp),
-                            )
-
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            ) {
-                                items(cast, key = { it.name }) { member ->
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier.width(76.dp),
+                            items(cast) { member ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.width(72.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF22242A))
                                     ) {
-                                        Surface(
-                                            shape = CircleShape,
-                                            color = NuvioColors.Surface,
-                                            border = BorderStroke(1.dp, NuvioColors.Card),
-                                            modifier = Modifier.size(64.dp),
-                                        ) {
-                                            if (!member.imageUrl.isNullOrBlank()) {
-                                                AsyncImage(
-                                                    model = member.imageUrl,
-                                                    contentDescription = member.name,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier.fillMaxSize(),
-                                                )
-                                            } else {
-                                                Box(contentAlignment = Alignment.Center) {
-                                                    Text(
-                                                        text = member.name.take(1).uppercase(),
-                                                        fontSize = 20.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = NuvioColors.Gold,
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        Spacer(Modifier.height(8.dp))
-
-                                        Text(
-                                            text = member.name,
-                                            fontSize = 11.5.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = NuvioColors.TextPrimary,
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-
-                                        if (!member.role.isNullOrBlank()) {
-                                            Text(
-                                                text = member.role,
-                                                fontSize = 10.5.sp,
-                                                color = NuvioColors.TextSecondary,
-                                                textAlign = TextAlign.Center,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
+                                        if (!member.imageUrl.isNullOrBlank()) {
+                                            AsyncImage(
+                                                model = member.imageUrl,
+                                                contentDescription = member.name,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxSize(),
                                             )
                                         }
                                     }
+
+                                    Text(
+                                        text = member.name,
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                    )
                                 }
                             }
                         }
@@ -555,186 +542,109 @@ fun NuvioDetailScreen(
                 }
             }
 
-            // Section 4: TV Series Episodes
+            // Section 4: Seasons & Episodes (for series)
             if (episodes.isNotEmpty()) {
-                item(key = "detail_episodes_section") {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
+                item(key = "detail_episodes_header") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .widthIn(max = contentMaxWidth)
-                                .fillMaxWidth()
-                                .padding(top = 28.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp),
-                        ) {
-                            Text(
-                                text = "Episodes",
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = NuvioColors.TextPrimary,
-                                modifier = Modifier.padding(horizontal = 20.dp),
-                            )
+                        Text(
+                            text = "Episodes",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
 
-                            // Season selector chips
-                            if (seasons.size > 1) {
-                                LazyRow(
-                                    contentPadding = PaddingValues(horizontal = 20.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    itemsIndexed(seasons, key = { _, s -> s.seasonNumber }) { _, season ->
-                                        NuvioChip(
-                                            label = season.name,
-                                            selected = season.seasonNumber == selectedSeason,
-                                            onClick = { onSeasonSelected(season.seasonNumber) },
+                        // Season Pills
+                        if (seasons.size > 1) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(seasons) { season ->
+                                    val isSelected = season.seasonNumber == selectedSeason
+                                    Surface(
+                                        onClick = { onSeasonSelected(season.seasonNumber) },
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = if (isSelected) NuvioColors.Gold else Color(0xFF1E2024),
+                                    ) {
+                                        Text(
+                                            text = season.name,
+                                            color = if (isSelected) Color.Black else Color.White,
+                                            fontSize = 12.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                                         )
                                     }
                                 }
                             }
-
-                            // Episode Cards
-                            Column(
-                                modifier = Modifier.padding(horizontal = 20.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                            ) {
-                                episodes.forEach { ep ->
-                                    Surface(
-                                        onClick = { onEpisodeClick(ep) },
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = NuvioColors.Surface,
-                                        border = BorderStroke(1.dp, NuvioColors.Card),
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(12.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            // 16:9 Thumbnail
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(width = 110.dp, height = 66.dp)
-                                                    .clip(RoundedCornerShape(8.dp))
-                                                    .background(NuvioColors.Card),
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                if (!ep.posterUrl.isNullOrBlank()) {
-                                                    AsyncImage(
-                                                        model = ep.posterUrl,
-                                                        contentDescription = ep.name,
-                                                        contentScale = ContentScale.Crop,
-                                                        modifier = Modifier.fillMaxSize(),
-                                                    )
-                                                }
-                                                Icon(
-                                                    Icons.Default.PlayArrow,
-                                                    contentDescription = null,
-                                                    tint = Color.White.copy(alpha = 0.85f),
-                                                    modifier = Modifier.size(26.dp),
-                                                )
-                                            }
-
-                                            // Text info
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                val epLabel = if (ep.episodeNumber != null) "E${ep.episodeNumber} • ${ep.name}" else ep.name
-                                                Text(
-                                                    text = epLabel,
-                                                    fontSize = 13.5.sp,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = NuvioColors.TextPrimary,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                                if (!ep.duration.isNullOrBlank()) {
-                                                    Text(
-                                                        text = ep.duration,
-                                                        fontSize = 11.5.sp,
-                                                        color = NuvioColors.TextSecondary,
-                                                    )
-                                                }
-                                                if (!ep.description.isNullOrBlank()) {
-                                                    Text(
-                                                        text = ep.description,
-                                                        fontSize = 11.5.sp,
-                                                        color = NuvioColors.TextTertiary,
-                                                        maxLines = 2,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                 }
+
+                // Episode Cards
+                items(episodes, key = { it.id }) { ep ->
+                    NuvioEpisodeCard(
+                        episode = ep,
+                        onClick = { onEpisodeClick(ep) },
+                    )
+                }
             }
 
-            // Section 5: Movie Details Table (Status, Release, Runtime, Certification, Country, Language)
-            item(key = "detail_info_table") {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
+            // Section 5: Recommendations Row
+            if (recommendations.isNotEmpty()) {
+                item(key = "detail_recommendations") {
                     Column(
                         modifier = Modifier
-                            .widthIn(max = contentMaxWidth)
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 28.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                            .padding(vertical = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Text(
-                            text = "Movie Details",
-                            fontSize = 19.sp,
+                            text = "More Like This",
+                            color = Color.White,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = NuvioColors.TextPrimary,
+                            modifier = Modifier.padding(horizontal = 20.dp),
                         )
 
-                        val detailsList = listOfNotNull(
-                            detail.status?.let { "Status" to it },
-                            detail.year?.let { "Release Info" to it },
-                            detail.duration?.let { "Runtime" to it },
-                            detail.contentRating?.let { "Certification" to it },
-                            detail.country?.let { "Origin Country" to it },
-                            detail.language?.let { "Original Language" to it },
-                            detail.provider?.let { "Provider" to it },
-                        )
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(NuvioColors.Surface)
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            detailsList.forEachIndexed { idx, (label, value) ->
-                                Row(
+                            items(recommendations) { rec ->
+                                Column(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 11.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
+                                        .width(120.dp)
+                                        .clickable { onRecommendationClick(rec) },
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
-                                    Text(
-                                        text = label,
-                                        fontSize = 13.sp,
-                                        color = NuvioColors.TextSecondary,
-                                    )
-                                    Text(
-                                        text = value,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = NuvioColors.TextPrimary,
-                                    )
-                                }
-                                if (idx < detailsList.size - 1) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(0.5.dp)
-                                            .background(Color(0x1AFFFFFF))
+                                            .aspectRatio(2f / 3f)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color(0xFF1E2024))
+                                    ) {
+                                        if (!rec.posterUrl.isNullOrBlank()) {
+                                            AsyncImage(
+                                                model = rec.posterUrl,
+                                                contentDescription = rec.title,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                        }
+                                    }
+
+                                    Text(
+                                        text = rec.title,
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }
@@ -742,64 +652,87 @@ fun NuvioDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
 
-            // Section 6: More Like This (Recommendations Rail)
-            if (recommendations.isNotEmpty()) {
-                item(key = "detail_recommendations_section") {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .widthIn(max = contentMaxWidth)
-                                .fillMaxWidth()
-                                .padding(top = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = "More Like This",
-                                    fontSize = 19.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = NuvioColors.TextPrimary,
-                                )
-                                Text(
-                                    text = "Powered by TMDB",
-                                    fontSize = 11.sp,
-                                    color = NuvioColors.TextTertiary,
-                                )
-                            }
+@Composable
+private fun NuvioEpisodeCard(
+    episode: NuvioEpisodeItem,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Episode 16:9 thumbnail
+        Box(
+            modifier = Modifier
+                .width(120.dp)
+                .aspectRatio(16f / 9f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF1E2024))
+        ) {
+            val poster = episode.posterUrl
+            if (!poster.isNullOrBlank()) {
+                AsyncImage(
+                    model = poster,
+                    contentDescription = episode.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
 
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            ) {
-                                items(recommendations, key = { it.id }) { rec ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(130.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .clickable { onRecommendationClick(rec) }
-                                    ) {
-                                        NuvioPosterCard(
-                                            title = rec.title,
-                                            posterUrl = rec.posterUrl,
-                                            rating = rec.rating,
-                                            subtitle = rec.year,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.25f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Play Episode",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+        }
+
+        // Title and description
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            val epNum = episode.episodeNumber?.let { "EP $it • " } ?: ""
+            val duration = episode.duration?.let { " • $it" } ?: ""
+            Text(
+                text = "$epNum${episode.name}",
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (!episode.description.isNullOrBlank()) {
+                Text(
+                    text = episode.description,
+                    color = Color(0xFF8E95A5),
+                    fontSize = 11.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (duration.isNotBlank()) {
+                Text(
+                    text = duration.trimStart(' ', '•'),
+                    color = NuvioColors.Gold,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                )
             }
         }
     }
