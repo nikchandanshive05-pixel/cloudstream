@@ -738,7 +738,7 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     resultResumeProgressHolder.isVisible = false
                     return@observeNullable
                 }
-                resultResumeParent.isVisible = true
+                resultResumeParent.isVisible = false
                 resume.progress?.let { progress ->
                     resultNextSeriesButton.isVisible = false
                     resultResumeSeriesTitle.apply {
@@ -874,9 +874,9 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
 
         observeNullable(viewModel.movie) { data ->
             resultBinding?.apply {
-                resultPlayMovie.isVisible = data is Resource.Success
-                downloadButton.isVisible =
-                    data is Resource.Success && viewModel.currentRepo?.api?.hasDownloadSupport == true
+                // Keep XML buttons hidden when Compose NuvioDetailHeader is in use
+                resultPlayMovie.isVisible = false
+                downloadButton.isVisible = false
 
                 (data as? Resource.Success)?.value?.let { (text, ep) ->
                     resultPlayMovie.setText(text)
@@ -961,16 +961,13 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                                     if (resumeStatus != null) {
                                         resumeAction(storedData, resumeStatus)
                                     } else {
-                                        val movieEp = (viewModel.movie.value as? Resource.Success)?.value?.second
-                                        if (movieEp != null) {
-                                            viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, movieEp))
+                                        val ep = (viewModel.movie.value as? Resource.Success)?.value?.second
+                                            ?: (viewModel.episodes.value as? Resource.Success)?.value?.firstOrNull()
+                                            ?: viewModel.getFirstEpisode()
+                                        if (ep != null) {
+                                            viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, ep))
                                         } else {
-                                            val firstEp = (viewModel.episodes.value as? Resource.Success)?.value?.firstOrNull()
-                                            if (firstEp != null) {
-                                                viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, firstEp))
-                                            } else {
-                                                resultPlayMovie.performClick()
-                                            }
+                                            resultPlayMovie.performClick()
                                         }
                                     }
                                 },
@@ -1056,7 +1053,9 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     populateChips(resultTag, d.tags)
 
                     resultComingSoon.isVisible = d.comingSoon
-                    resultDataHolder.isGone = d.comingSoon
+                    resultDataHolder.isGone = true
+                    resultMovieParent.isGone = true
+                    resultResumeParent.isGone = true
 
                     val prefs =
                         androidx.preference.PreferenceManager.getDefaultSharedPreferences(root.context)

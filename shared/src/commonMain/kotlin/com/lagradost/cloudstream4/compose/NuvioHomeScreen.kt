@@ -663,7 +663,8 @@ private fun NuvioSectionRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .clickable { onExpandClick(section) }
+                .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -677,9 +678,7 @@ private fun NuvioSectionRow(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Expand",
                 tint = Color(0xFF8E95A5),
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable { onExpandClick(section) }
+                modifier = Modifier.size(22.dp)
             )
         }
 

@@ -1174,11 +1174,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
                                       }
                                   },
                                 onExpandClick = { section ->
-                                    val expandable = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)
-                                        ?.value?.get(section.title)
-                                    expandable?.let { homeViewModel.popup(it, null) }
-                                },
-                                isLoading = isLoadingState.value,
+                                     val pageMap = (homeViewModel.page.value as? com.lagradost.cloudstream3.mvvm.Resource.Success)?.value
+                                     val expandable = pageMap?.get(section.title)
+                                         ?: pageMap?.values?.firstOrNull { it.list.name.equals(section.title, ignoreCase = true) }
+                                     expandable?.let { homeViewModel.popup(it, null) }
+                                 },
+                                 isLoading = isLoadingState.value,
                                 error = errorState.value,
                                 onRetry = { homeViewModel.loadAndCancel(apiNameState.value ?: noneApi.name, forceReload = true) },
                                 showRandom = true,

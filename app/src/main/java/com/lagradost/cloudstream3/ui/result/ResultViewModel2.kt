@@ -574,6 +574,14 @@ class ResultViewModel2 : ViewModel() {
     private val _favoriteStatus: MutableLiveData<Boolean?> = MutableLiveData(null)
     val favoriteStatus: LiveData<Boolean?> = _favoriteStatus
 
+    fun getFirstEpisode(): ResultEpisode? {
+        val current = (episodes.value as? Resource.Success)?.value?.firstOrNull()
+        if (current != null) return current
+        val fromMap = currentEpisodes.values.flatten().firstOrNull()
+        if (fromMap != null) return fromMap
+        return (movie.value as? Resource.Success)?.value?.second
+    }
+
     companion object {
         const val TAG = "RVM2"
         //private const val EPISODE_RANGE_SIZE = 20
