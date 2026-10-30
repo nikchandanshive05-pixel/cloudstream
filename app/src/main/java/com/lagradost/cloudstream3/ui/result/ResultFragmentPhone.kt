@@ -1053,9 +1053,11 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                     populateChips(resultTag, d.tags)
 
                     resultComingSoon.isVisible = d.comingSoon
-                    resultDataHolder.isGone = true
+                    resultDataHolder.isGone = d.comingSoon
                     resultMovieParent.isGone = true
                     resultResumeParent.isGone = true
+                    resultPlayParent.isGone = true
+                    downloadButton.isGone = true
 
                     val prefs =
                         androidx.preference.PreferenceManager.getDefaultSharedPreferences(root.context)
