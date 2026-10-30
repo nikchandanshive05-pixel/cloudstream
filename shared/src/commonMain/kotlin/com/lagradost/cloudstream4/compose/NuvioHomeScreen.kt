@@ -1,5 +1,6 @@
 package com.lagradost.cloudstream4.compose
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -311,21 +312,28 @@ private fun NuvioHeroCinematicPager(
                 }
             },
     ) {
-        // High-res Backdrop
-        val poster = currentItem.posterUrl
-        if (!poster.isNullOrBlank()) {
-            AsyncImage(
-                model = poster,
-                contentDescription = currentItem.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF16171B))
-            )
+        // High-res Backdrop with Smooth Crossfade
+        Crossfade(
+            targetState = currentItem,
+            animationSpec = tween(durationMillis = 400),
+            modifier = Modifier.fillMaxSize(),
+            label = "hero_crossfade"
+        ) { heroItem ->
+            val poster = heroItem.posterUrl
+            if (!poster.isNullOrBlank()) {
+                AsyncImage(
+                    model = poster,
+                    contentDescription = heroItem.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF16171B))
+                )
+            }
         }
 
         // Top Subtle Scrim with Source Chip (padded below system status bar)

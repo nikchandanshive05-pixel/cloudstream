@@ -957,10 +957,30 @@ open class ResultFragmentPhone : BaseFragment<FragmentResultSwipeBinding>(
                                 playButtonText = if (d.typeText.asStringNull(context)?.contains("Movie", ignoreCase = true) == true) "Play Movie" else "Play",
                                 isBookmarked = viewModel.watchStatus.value != null && viewModel.watchStatus.value != WatchType.NONE,
                                 onPlayClick = {
-                                    resultPlayMovie.performClick()
+                                    val resumeStatus = viewModel.resumeWatching.value
+                                    if (resumeStatus != null) {
+                                        resumeAction(storedData, resumeStatus)
+                                    } else {
+                                        val movieEp = (viewModel.movie.value as? Resource.Success)?.value?.second
+                                        if (movieEp != null) {
+                                            viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, movieEp))
+                                        } else {
+                                            val firstEp = (viewModel.episodes.value as? Resource.Success)?.value?.firstOrNull()
+                                            if (firstEp != null) {
+                                                viewModel.handleAction(EpisodeClickEvent(ACTION_CLICK_DEFAULT, firstEp))
+                                            } else {
+                                                resultPlayMovie.performClick()
+                                            }
+                                        }
+                                    }
                                 },
                                 onDownloadClick = {
-                                    downloadButton.performClick()
+                                    val movieSuccess = viewModel.movie.value is Resource.Success
+                                    if (movieSuccess) {
+                                        downloadButton.performClick()
+                                    } else {
+                                        resultBatchDownloadButton.performClick()
+                                    }
                                 },
                                 onBookmarkClick = {
                                     val currentWatchType = viewModel.watchStatus.value ?: WatchType.NONE
